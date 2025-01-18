@@ -101,7 +101,7 @@ function shootLaser() {
     }, 10);
 }
 
-// Modify the score checking section to include Eggman and difficulty increase
+// Modify the score checking section to ensure monster speed remains constant
 setInterval(() => {
     if (!isGameOver) {
         const sonicRect = sonic.getBoundingClientRect();
@@ -185,6 +185,6 @@ document.querySelectorAll('.character-option').forEach(option => {
         const newImageUrl = option.dataset.image;
         sonic.style.backgroundImage = `url('${newImageUrl}')`;
         characterSelect.classList.add('hidden');
-        monster.style.animation = 'monsterMove 3s infinite linear';
+        monster.style.animation = 'monsterMove 1.5s infinite linear'; // Ensure constant speed
     });
 }); 
