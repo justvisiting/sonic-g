@@ -4,7 +4,6 @@ const scoreSpan = document.getElementById('scoreSpan');
 const gameOver = document.getElementById('gameOver');
 const characterSelect = document.getElementById('characterSelect');
 const highScoreSpan = document.getElementById('highScoreSpan');
-const eggman = document.getElementById('eggman');
 
 let score = 0;
 let isJumping = false;
@@ -12,8 +11,6 @@ let isGameOver = false;
 let characterSelectShown = false;
 let highScore = localStorage.getItem('highScore') || 0;
 highScoreSpan.textContent = highScore;
-
-let laserIntervalId;
 
 // Jump function
 function jump() {
@@ -49,10 +46,6 @@ function restartGame() {
         setTimeout(() => {
             monster.style.animation = 'monsterMove 1.5s infinite linear';  // Restart the animation
         }, 0);  // Use a timeout to ensure the animation restarts
-
-        // Stop Eggman from shooting lasers
-        clearInterval(laserIntervalId);
-        eggman.classList.add('hidden'); // Hide Eggman
     }
 }
 
@@ -72,37 +65,6 @@ function updateCharacterBasedOnScore() {
     if (currentImage === tailsImage && score < 50) {
         sonic.style.backgroundImage = sonicImage;
     }
-}
-
-// Function to shoot lasers
-function shootLaser() {
-    const laser = document.createElement('div');
-    laser.classList.add('laser');
-    laser.style.left = `${Math.random() * 800}px`; // Random horizontal position
-    document.querySelector('.game-area').appendChild(laser);
-
-    // Move the laser downwards
-    const laserInterval = setInterval(() => {
-        const laserRect = laser.getBoundingClientRect();
-        const sonicRect = sonic.getBoundingClientRect();
-
-        // Check for collision with Sonic or Tails
-        if (laserRect.bottom > sonicRect.top && 
-            laserRect.left < sonicRect.right && 
-            laserRect.right > sonicRect.left) {
-            clearInterval(laserInterval);
-            laser.remove();
-            isGameOver = true;
-            monster.style.animation = 'none';
-            gameOver.classList.remove('hidden');
-        }
-
-        // Remove laser if it goes out of bounds
-        if (laserRect.top > 300) {
-            clearInterval(laserInterval);
-            laser.remove();
-        }
-    }, 10);
 }
 
 // Modify the score checking section to ensure Eggman stops shooting at score 0
@@ -142,19 +104,6 @@ setInterval(() => {
                 
                 // Hide Knuckles option
                 document.querySelector('.character-option[data-image="./images/knuckles.png"]').style.display = 'none';
-            }
-
-            // Show Eggman and start shooting lasers at score 100
-            if (score === 100) {
-                eggman.classList.remove('hidden');
-                laserIntervalId = setInterval(shootLaser, 2000); // Shoot a laser every 2 seconds
-            }
-
-            // Increase difficulty every 50 points after 100
-            if (score > 100 && score % 50 === 0) {
-                clearInterval(laserIntervalId);
-                const newInterval = Math.max(500, 2000 - (score - 100) * 10); // Decrease interval to a minimum of 500ms
-                laserIntervalId = setInterval(shootLaser, newInterval);
             }
         }
 
