@@ -73,14 +73,18 @@ setInterval(() => {
         const sonicRect = sonic.getBoundingClientRect();
         const monsterRect = monster.getBoundingClientRect();
         
-        // Collision detection using rectangles
+        // Collision detection allowing standing on top
         if (sonicRect.right > monsterRect.left && 
             sonicRect.left < monsterRect.right && 
             sonicRect.bottom > monsterRect.top && 
             sonicRect.top < monsterRect.bottom) {
-            isGameOver = true;
-            monster.style.animation = 'none';
-            gameOver.classList.remove('hidden'); // Show game over message
+            
+            // Check if Sonic is not standing on top
+            if (sonicRect.bottom < monsterRect.bottom - 10) { // Allow a small margin
+                isGameOver = true;
+                monster.style.animation = 'none';
+                gameOver.classList.remove('hidden'); // Show game over message
+            }
         }
         
         // Increase score and check for character selection
