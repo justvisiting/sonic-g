@@ -164,4 +164,27 @@
     background: rgba(255, 255, 255, 0.9);
     border-radius: 5px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+#eggman {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 80px;
+    height: 80px;
+    z-index: 1000;
+}
+
+.laser {
+    position: absolute;
+    width: 5px;
+    height: 20px;
+    background-color: red;
+    z-index: 999;
+    animation: laserMove 1s linear infinite;
+}
+
+@keyframes laserMove {
+    from { top: 80px; }
+    to { top: 300px; }
 } 

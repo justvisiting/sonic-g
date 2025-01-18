@@ -4,6 +4,7 @@ const scoreSpan = document.getElementById('scoreSpan');
 const gameOver = document.getElementById('gameOver');
 const characterSelect = document.getElementById('characterSelect');
 const highScoreSpan = document.getElementById('highScoreSpan');
+const eggman = document.getElementById('eggman');
 
 let score = 0;
 let isJumping = false;
@@ -11,6 +12,8 @@ let isGameOver = false;
 let characterSelectShown = false;
 let highScore = localStorage.getItem('highScore') || 0;
 highScoreSpan.textContent = highScore;
+
+let laserIntervalId;
 
 // Jump function
 function jump() {
@@ -67,28 +70,51 @@ function updateCharacterBasedOnScore() {
     }
 }
 
-// Check for collision and update score
+// Function to shoot lasers
+function shootLaser() {
+    const laser = document.createElement('div');
+    laser.classList.add('laser');
+    laser.style.left = `${Math.random() * 800}px`; // Random horizontal position
+    document.querySelector('.game-area').appendChild(laser);
+
+    // Move the laser downwards
+    const laserInterval = setInterval(() => {
+        const laserRect = laser.getBoundingClientRect();
+        const sonicRect = sonic.getBoundingClientRect();
+
+        // Check for collision with Sonic or Tails
+        if (laserRect.bottom > sonicRect.top && 
+            laserRect.left < sonicRect.right && 
+            laserRect.right > sonicRect.left) {
+            clearInterval(laserInterval);
+            laser.remove();
+            isGameOver = true;
+            monster.style.animation = 'none';
+            gameOver.classList.remove('hidden');
+        }
+
+        // Remove laser if it goes out of bounds
+        if (laserRect.top > 300) {
+            clearInterval(laserInterval);
+            laser.remove();
+        }
+    }, 10);
+}
+
+// Modify the score checking section to include Eggman and difficulty increase
 setInterval(() => {
     if (!isGameOver) {
         const sonicRect = sonic.getBoundingClientRect();
         const monsterRect = monster.getBoundingClientRect();
         
-        // Collision detection allowing jumping on the monster's head
+        // Original collision detection logic
         if (sonicRect.right > monsterRect.left && 
             sonicRect.left < monsterRect.right && 
             sonicRect.bottom > monsterRect.top && 
             sonicRect.top < monsterRect.bottom) {
-            
-            // Check if Sonic is above the monster
-            if (sonicRect.bottom <= monsterRect.top + 10) {
-                // Sonic is on top of the monster, do not trigger game over
-                // You can add logic here if you want to reward the player for jumping on the monster
-            } else {
-                // Sonic collides with the monster from the side or below
-                isGameOver = true;
-                monster.style.animation = 'none';
-                gameOver.classList.remove('hidden'); // Show game over message
-            }
+            isGameOver = true;
+            monster.style.animation = 'none';
+            gameOver.classList.remove('hidden'); // Show game over message
         }
         
         // Increase score and check for character selection
@@ -112,6 +138,19 @@ setInterval(() => {
                 
                 // Hide Knuckles option
                 document.querySelector('.character-option[data-image="./images/knuckles.png"]').style.display = 'none';
+            }
+
+            // Show Eggman and start shooting lasers at score 100
+            if (score === 100) {
+                eggman.classList.remove('hidden');
+                laserIntervalId = setInterval(shootLaser, 2000); // Shoot a laser every 2 seconds
+            }
+
+            // Increase difficulty every 50 points after 100
+            if (score > 100 && score % 50 === 0) {
+                clearInterval(laserIntervalId);
+                const newInterval = Math.max(500, 2000 - (score - 100) * 10); // Decrease interval to a minimum of 500ms
+                laserIntervalId = setInterval(shootLaser, newInterval);
             }
         }
 
