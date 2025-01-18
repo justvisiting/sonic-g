@@ -73,14 +73,22 @@ setInterval(() => {
         const sonicRect = sonic.getBoundingClientRect();
         const monsterRect = monster.getBoundingClientRect();
         
-        // Collision detection using rectangles
+        // Collision detection allowing jumping on the monster's head
         if (sonicRect.right > monsterRect.left && 
             sonicRect.left < monsterRect.right && 
             sonicRect.bottom > monsterRect.top && 
             sonicRect.top < monsterRect.bottom) {
-            isGameOver = true;
-            monster.style.animation = 'none';
-            gameOver.classList.remove('hidden'); // Show game over message
+            
+            // Check if Sonic is above the monster
+            if (sonicRect.bottom <= monsterRect.top + 10) {
+                // Sonic is on top of the monster, do not trigger game over
+                // You can add logic here if you want to reward the player for jumping on the monster
+            } else {
+                // Sonic collides with the monster from the side or below
+                isGameOver = true;
+                monster.style.animation = 'none';
+                gameOver.classList.remove('hidden'); // Show game over message
+            }
         }
         
         // Increase score and check for character selection
