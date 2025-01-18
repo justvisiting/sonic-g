@@ -36,11 +36,16 @@ function restartGame() {
         characterSelectShown = false;
         scoreSpan.textContent = score;
         gameOver.classList.add('hidden');
-        monster.style.animation = 'monsterMove 3s infinite linear';
-
+        
         // Reset Sonic's position
         sonic.style.left = '50px';  // Reset to starting position
         sonic.style.bottom = '50px';  // Reset to starting height
+
+        // Reset monster's animation
+        monster.style.animation = 'none';  // Stop the animation
+        setTimeout(() => {
+            monster.style.animation = 'monsterMove 1.5s infinite linear';  // Restart the animation
+        }, 0);  // Use a timeout to ensure the animation restarts
     }
 }
 
