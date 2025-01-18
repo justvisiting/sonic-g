@@ -73,7 +73,7 @@ setInterval(() => {
             sonicRect.top < monsterRect.bottom) {
             isGameOver = true;
             monster.style.animation = 'none';
-            gameOver.classList.remove('hidden');
+            gameOver.classList.remove('hidden'); // Show game over message
         }
         
         // Increase score and check for character selection
