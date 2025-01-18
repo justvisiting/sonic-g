@@ -53,8 +53,15 @@ function restartGame() {
 function updateCharacterBasedOnScore() {
     const currentImage = sonic.style.backgroundImage;
     const tailsImage = "url('./images/tails.png')";
+    const knucklesImage = "url('./images/knuckles.png')";
     const sonicImage = "url('./images/sonic.png')";
 
+    // If score is 0, revert to Sonic
+    if (score === 0 && currentImage !== sonicImage) {
+        sonic.style.backgroundImage = sonicImage;
+    }
+
+    // If score is less than 50 and character is Tails, revert to Sonic
     if (currentImage === tailsImage && score < 50) {
         sonic.style.backgroundImage = sonicImage;
     }
