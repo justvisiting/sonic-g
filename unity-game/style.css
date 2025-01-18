@@ -1,0 +1,103 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.container {
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 50px;
+    background-color: #1a1a1a;
+}
+
+.game-area {
+    width: 800px;
+    height: 300px;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(to bottom, #0078D7, #00A8E8);
+    border: 4px solid #333;
+    border-radius: 10px;
+}
+
+.ground {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 50px;
+    background: linear-gradient(to bottom, #4CAF50, #388E3C);
+}
+
+#sonic {
+    width: 64px;
+    height: 64px;
+    position: absolute;
+    bottom: 50px;
+    left: 50px;
+    background-color: #2196F3;
+    border-radius: 50% 50% 0 0;
+    border: 2px solid #1976D2;
+}
+
+#sonic::before {
+    content: '';
+    position: absolute;
+    top: -5px;
+    left: 0;
+    width: 100%;
+    height: 20px;
+    background: linear-gradient(45deg, #2196F3 25%, transparent 25%) -15px 0,
+                linear-gradient(-45deg, #2196F3 25%, transparent 25%) 15px 0;
+    background-size: 20px 20px;
+}
+
+#obstacle {
+    width: 30px;
+    height: 60px;
+    position: absolute;
+    bottom: 50px;
+    right: -30px;
+    background-color: #FF5722;
+    border-radius: 5px;
+    animation: obstacleMove 2s infinite linear;
+}
+
+@keyframes run {
+    from { background-position: 0 0; }
+    to { background-position: -512px 0; }
+}
+
+@keyframes obstacleMove {
+    from { right: -30px; }
+    to { right: 100%; }
+}
+
+.jump {
+    animation: jump 0.5s linear, run 0.5s steps(8) infinite !important;
+}
+
+@keyframes jump {
+    0% { bottom: 50px; }
+    45%, 55% { bottom: 150px; }
+    100% { bottom: 50px; }
+}
+
+.score {
+    font-size: 24px;
+    color: white;
+    margin-top: 20px;
+}
+
+.game-over {
+    font-size: 24px;
+    color: #FF5722;
+    margin-top: 20px;
+}
+
+.hidden {
+    display: none;
+} 
