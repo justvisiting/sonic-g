@@ -10,12 +10,47 @@
     <div class="container">
         <div class="game-area">
             <div id="sonic"></div>
-            <div id="monster"></div>
+            <div id="monster">
+                <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Body -->
+                    <circle cx="50" cy="50" r="40" fill="#FF5722"/>
+                    <!-- Eyes -->
+                    <circle cx="35" cy="40" r="8" fill="white"/>
+                    <circle cx="65" cy="40" r="8" fill="white"/>
+                    <circle cx="35" cy="40" r="4" fill="black"/>
+                    <circle cx="65" cy="40" r="4" fill="black"/>
+                    <!-- Mouth -->
+                    <path d="M 70 60 Q 50 80 30 60" stroke="white" stroke-width="4" fill="none"/>
+                    <!-- Horns -->
+                    <path d="M 70 20 L 60 35 L 50 20" fill="#7B1FA2"/>
+                    <path d="M 50 20 L 40 35 L 30 20" fill="#7B1FA2"/>
+                </svg>
+            </div>
             <div class="ground"></div>
         </div>
-        <div class="score">Score: <span id="scoreSpan">0</span></div>
+        <div class="score-container">
+            <div class="score">Score: <span id="scoreSpan">0</span></div>
+            <div class="high-score">High Score: <span id="highScoreSpan">0</span></div>
+        </div>
         <div class="game-over hidden" id="gameOver">
             Game Over! Press Space to restart
+        </div>
+        <div class="character-select hidden" id="characterSelect">
+            <h2>Congratulations! Choose your character:</h2>
+            <div class="character-options">
+                <div class="character-option" data-image="./images/sonic.png">
+                    <img src="./images/sonic.png" alt="Sonic">
+                    <span>Sonic</span>
+                </div>
+                <div class="character-option" data-image="./images/tails.png">
+                    <img src="./images/tails.png" alt="Tails">
+                    <span>Tails</span>
+                </div>
+                <div class="character-option" data-image="./images/knuckles.png">
+                    <img src="./images/knuckles.png" alt="Knuckles">
+                    <span>Knuckles</span>
+                </div>
+            </div>
         </div>
     </div>
     <script src="script.js"></script>
