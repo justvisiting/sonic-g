@@ -49,6 +49,10 @@ function restartGame() {
         setTimeout(() => {
             monster.style.animation = 'monsterMove 1.5s infinite linear';  // Restart the animation
         }, 0);  // Use a timeout to ensure the animation restarts
+
+        // Stop Eggman from shooting lasers
+        clearInterval(laserIntervalId);
+        eggman.classList.add('hidden'); // Hide Eggman
     }
 }
 
@@ -101,7 +105,7 @@ function shootLaser() {
     }, 10);
 }
 
-// Modify the score checking section to ensure monster speed remains constant
+// Modify the score checking section to ensure Eggman stops shooting at score 0
 setInterval(() => {
     if (!isGameOver) {
         const sonicRect = sonic.getBoundingClientRect();
