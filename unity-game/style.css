@@ -11,7 +11,7 @@
     flex-direction: column;
     align-items: center;
     padding-top: 50px;
-    background-color: #1a1a1a;
+    background-color: white;
 }
 
 .game-area {
@@ -19,9 +19,16 @@
     height: 300px;
     position: relative;
     overflow: hidden;
-    background: linear-gradient(to bottom, #0078D7, #00A8E8);
+    background: url('./images/background.png') repeat-x;
+    background-size: auto 100%;
     border: 4px solid #333;
     border-radius: 10px;
+    animation: scrollBackground 10s linear infinite;
+}
+
+@keyframes scrollBackground {
+    from { background-position: 0 0; }
+    to { background-position: -1000px 0; }
 }
 
 .ground {
@@ -29,7 +36,7 @@
     bottom: 0;
     width: 100%;
     height: 50px;
-    background: linear-gradient(to bottom, #4CAF50, #388E3C);
+    background: rgba(74, 175, 80, 0.8);
 }
 
 #sonic {
@@ -38,57 +45,47 @@
     position: absolute;
     bottom: 50px;
     left: 50px;
-    background-color: #2196F3;
-    border-radius: 50% 50% 0 0;
-    border: 2px solid #1976D2;
+    background: url('./images/sonic.png') no-repeat;
+    background-size: contain;
+    image-rendering: pixelated;
+    transition: bottom 0.5s;
+    transform: scaleX(-1);
 }
 
 #sonic::before {
-    content: '';
-    position: absolute;
-    top: -5px;
-    left: 0;
-    width: 100%;
-    height: 20px;
-    background: linear-gradient(45deg, #2196F3 25%, transparent 25%) -15px 0,
-                linear-gradient(-45deg, #2196F3 25%, transparent 25%) 15px 0;
-    background-size: 20px 20px;
+    display: none;
 }
 
-#obstacle {
-    width: 30px;
-    height: 60px;
+#monster {
+    width: 50px;
+    height: 50px;
     position: absolute;
     bottom: 50px;
     right: -30px;
-    background-color: #FF5722;
-    border-radius: 5px;
-    animation: obstacleMove 2s infinite linear;
+    background: url('./images/monster.png') no-repeat;
+    background-size: contain;
+    image-rendering: pixelated;
+    animation: monsterMove 2s infinite linear;
 }
 
-@keyframes run {
-    from { background-position: 0 0; }
-    to { background-position: -512px 0; }
-}
-
-@keyframes obstacleMove {
+@keyframes monsterMove {
     from { right: -30px; }
     to { right: 100%; }
 }
 
 .jump {
-    animation: jump 0.5s linear, run 0.5s steps(8) infinite !important;
+    animation: jump 0.5s linear !important;
 }
 
 @keyframes jump {
     0% { bottom: 50px; }
-    45%, 55% { bottom: 150px; }
+    45%, 55% { bottom: 200px; }
     100% { bottom: 50px; }
 }
 
 .score {
     font-size: 24px;
-    color: white;
+    color: #333;
     margin-top: 20px;
 }
 

@@ -1,5 +1,5 @@
 const sonic = document.getElementById('sonic');
-const obstacle = document.getElementById('obstacle');
+const monster = document.getElementById('monster');
 const scoreSpan = document.getElementById('scoreSpan');
 const gameOver = document.getElementById('gameOver');
 
@@ -27,7 +27,7 @@ function restartGame() {
         score = 0;
         scoreSpan.textContent = score;
         gameOver.classList.add('hidden');
-        obstacle.style.animation = 'obstacleMove 2s infinite linear';
+        monster.style.animation = 'monsterMove 2s infinite linear';
     }
 }
 
@@ -35,17 +35,17 @@ function restartGame() {
 setInterval(() => {
     if (!isGameOver) {
         const sonicBottom = parseInt(window.getComputedStyle(sonic).getPropertyValue('bottom'));
-        const obstacleRight = parseInt(window.getComputedStyle(obstacle).getPropertyValue('right'));
+        const monsterRight = parseInt(window.getComputedStyle(monster).getPropertyValue('right'));
         
         // Collision detection
-        if (obstacleRight > 700 && obstacleRight < 760 && sonicBottom <= 110) {
+        if (monsterRight > 700 && monsterRight < 760 && sonicBottom <= 110) {
             isGameOver = true;
-            obstacle.style.animation = 'none';
+            monster.style.animation = 'none';
             gameOver.classList.remove('hidden');
         }
         
         // Increase score
-        if (obstacleRight > 780) {
+        if (monsterRight > 780) {
             score++;
             scoreSpan.textContent = score;
         }
