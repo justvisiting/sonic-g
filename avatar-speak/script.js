@@ -50,13 +50,25 @@ document.addEventListener('DOMContentLoaded', () => {
     // Populate voice options
     function populateVoices() {
         voices = synth.getVoices();
-        voiceSelect.innerHTML = '';
+        voiceSelect.innerHTML = '<option value="">Choose a voice...</option>';
         
-        voices.forEach((voice, index) => {
+        // Find Daniel voice first
+        const danielVoice = voices.find(voice => voice.name.includes('Daniel'));
+        if (danielVoice) {
             const option = document.createElement('option');
-            option.value = index;
-            option.textContent = `${voice.name} (${voice.lang})`;
+            option.value = voices.indexOf(danielVoice);
+            option.textContent = `⭐ ${danielVoice.name} (Recommended!)`;
             voiceSelect.appendChild(option);
+        }
+        
+        // Add all other voices
+        voices.forEach((voice, index) => {
+            if (!voice.name.includes('Daniel')) {  // Skip Daniel as it's already added
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = `${voice.name} (${voice.lang})`;
+                voiceSelect.appendChild(option);
+            }
         });
     }
 

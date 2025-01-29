@@ -243,3 +243,51 @@ body {
 #speak-btn:hover {
     background: #45a049;
 }
+
+.instruction-sign {
+    background-color: #fff9e6;
+    border: 2px solid #ffd700;
+    border-radius: 10px;
+    padding: 20px;
+    margin: 20px auto;
+    max-width: 500px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}
+
+.instruction-sign h2 {
+    color: #ff0000;
+    margin-top: 0;
+    font-size: 24px;
+    text-align: center;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.instruction-sign ol {
+    margin: 0;
+    padding-left: 25px;
+}
+
+.instruction-sign li {
+    margin: 10px 0;
+    line-height: 1.5;
+}
+
+.instruction-sign ul {
+    margin: 5px 0;
+    padding-left: 20px;
+}
+
+.instruction-sign ul li {
+    margin: 5px 0;
+    color: #666;
+}
+
+.tip {
+    display: inline-block;
+    background-color: #ffe4e1;
+    padding: 5px 10px;
+    border-radius: 5px;
+    margin-top: 5px;
+    color: #ff4500;
+    font-weight: bold;
+}
