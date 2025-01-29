@@ -176,29 +176,6 @@
     /* Removed styles */
 }
 
-#spikes {
-    position: absolute;
-    bottom: 50px; /* Same as ground height */
-    width: 60px;
-    height: 30px;
-    transform: translateY(30px);
-    transition: transform 0.3s;
-}
-
-#spikes.active {
-    transform: translateY(0);
-}
-
-.spikes-svg {
-    width: 100%;
-    height: 100%;
-}
-
-@keyframes spikesMove {
-    from { left: -60px; }
-    to { left: 100%; }
-}
-
 @keyframes scrollBackground {
     from { background-position: 0 0; }
     to { background-position: -1000px 0; }

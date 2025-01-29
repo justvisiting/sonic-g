@@ -5,14 +5,14 @@ const gameOver = document.getElementById('gameOver');
 const characterSelect = document.getElementById('characterSelect');
 const highScoreSpan = document.getElementById('highScoreSpan');
 const gameArea = document.querySelector('.game-area');
-const spikes = document.getElementById('spikes');
 
 let score = 0;
 let isJumping = false;
 let isGameOver = false;
 let characterSelectShown = false;
 let highScore = localStorage.getItem('highScore') || 0;
-let spikesActive = false;
+let spaceKeyPresses = 0;
+let lastSpaceKeyTime = 0;
 highScoreSpan.textContent = highScore;
 
 // Jump function
@@ -74,6 +74,28 @@ function handleJump(event) {
     // For spacebar
     if (event.type === 'keydown' && event.code === 'Space') {
         event.preventDefault();
+        
+        // Check for quick space presses
+        const currentTime = Date.now();
+        if (currentTime - lastSpaceKeyTime < 500) { // Within 500ms
+            spaceKeyPresses++;
+            if (spaceKeyPresses >= 3) {
+                score += 50;
+                scoreSpan.textContent = score;
+                spaceKeyPresses = 0; // Reset counter
+                
+                // Update high score if needed
+                if (score > highScore) {
+                    highScore = score;
+                    localStorage.setItem('highScore', highScore);
+                    highScoreSpan.textContent = highScore;
+                }
+            }
+        } else {
+            spaceKeyPresses = 1;
+        }
+        lastSpaceKeyTime = currentTime;
+        
         if (isGameOver) {
             restartGame();
         } else {
@@ -93,62 +115,47 @@ function handleJump(event) {
     }
 }
 
-// Function to randomly show spikes
-function activateSpikes() {
-    if (!isGameOver && Math.random() < 0.3) { // 30% chance to show spikes
-        spikesActive = true;
-        spikes.classList.add('active');
-        spikes.style.left = '0';
-        spikes.style.animation = 'spikesMove 2s linear';
-        
-        setTimeout(() => {
-            spikes.classList.remove('active');
-            spikes.style.animation = 'none';
-            spikesActive = false;
-            setTimeout(() => {
-                spikes.style.left = '-60px';
-            }, 100);
-        }, 2000);
-    }
-}
-
-// Start spike generation
-setInterval(activateSpikes, 3000); // Try to generate spikes every 3 seconds
-
-// Modify the score checking section to remove spiky balls logic
+// Modify the score checking section
 setInterval(() => {
     if (!isGameOver) {
         const sonicRect = sonic.getBoundingClientRect();
         const monsterRect = monster.getBoundingClientRect();
         
-        // Collision detection logic
-        if (sonicRect.right > monsterRect.left && 
-            sonicRect.left < monsterRect.right && 
-            sonicRect.bottom > monsterRect.top && 
-            sonicRect.top < monsterRect.bottom) {
+        // More precise collision detection
+        const sonicLeft = sonicRect.left + 10; // Add some padding for more precise collision
+        const sonicRight = sonicRect.right - 10;
+        const sonicTop = sonicRect.top + 5;
+        const sonicBottom = sonicRect.bottom - 5;
+        
+        const monsterLeft = monsterRect.left + 5;
+        const monsterRight = monsterRect.right - 5;
+        const monsterTop = monsterRect.top + 5;
+        const monsterBottom = monsterRect.bottom - 5;
+        
+        // Collision detection logic with more precise boundaries
+        if (sonicRight > monsterLeft && 
+            sonicLeft < monsterRight && 
+            sonicBottom > monsterTop && 
+            sonicTop < monsterBottom) {
             
             // End game on collision
             isGameOver = true;
             monster.style.animation = 'none';
             gameOver.classList.remove('hidden');
+            
+            // Stop Sonic's movement
+            sonic.style.animation = 'none';
+            sonic.classList.remove('jump');
+            isJumping = false;
+            
+            // Prevent any further score increases
+            score = Math.floor(score); // Ensure score is final
+            scoreSpan.textContent = score;
+            return; // Exit immediately on collision
         }
         
-        // Spike collision detection
-        if (spikesActive) {
-            const spikesRect = spikes.getBoundingClientRect();
-            if (sonicRect.right > spikesRect.left && 
-                sonicRect.left < spikesRect.right && 
-                sonicRect.bottom > spikesRect.top) {
-                
-                // End game on spike collision
-                isGameOver = true;
-                monster.style.animation = 'none';
-                gameOver.classList.remove('hidden');
-            }
-        }
-        
-        // Increase score when passing a monster
-        if (monsterRect.right < sonicRect.left && !monsterRect.scored) {
+        // Only check for score increase if no collision
+        if (!isGameOver && monsterRect.right < sonicRect.left && !monsterRect.scored) {
             score++;
             scoreSpan.textContent = score;
             monsterRect.scored = true;
@@ -184,7 +191,7 @@ setInterval(() => {
             }, 0);
         }
     }
-}, 10);
+}, 10); // Check every 10ms for more responsive collision detection
 
 // Add event listeners
 document.addEventListener('keydown', handleJump);

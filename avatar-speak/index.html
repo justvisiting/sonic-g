@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speaking Avatar</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="game-area">
+            <div class="avatar">
+                <!-- Avatar face -->
+                <div class="face">
+                    <div class="eyes">
+                        <div class="eye left"></div>
+                        <div class="eye right"></div>
+                    </div>
+                    <div class="mouth">
+                        <div class="mouth-inner"></div>
+                    </div>
+                </div>
+                <!-- Speech bubble -->
+                <div class="speech-bubble hidden">
+                    <p id="speech-text"></p>
+                </div>
+            </div>
+        </div>
+        <div class="controls">
+            <input type="text" id="text-input" placeholder="Type something for the avatar to say...">
+            <button id="speak-btn">Speak</button>
+            <select id="voice-select">
+                <option value="">Default Voice</option>
+            </select>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
