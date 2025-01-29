@@ -14,19 +14,15 @@ body {
 }
 
 .container {
-    width: 800px;
+    max-width: 800px;
+    margin: 0 auto;
     padding: 20px;
-    background: white;
-    border-radius: 15px;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    text-align: center;
 }
 
 .game-area {
-    height: 400px;
     position: relative;
-    background: #e8f4fc;
-    border-radius: 10px;
-    margin-bottom: 20px;
+    height: 400px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -39,50 +35,131 @@ body {
 }
 
 .face {
+    position: relative;
     width: 100%;
     height: 100%;
-    background: #ffdb99;
+    background-color: #ffb6a3;
     border-radius: 50%;
-    position: relative;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    overflow: visible;
 }
 
+/* Mario's Hat */
+.hat {
+    position: absolute;
+    top: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2;
+}
+
+.hat-top {
+    width: 120px;
+    height: 60px;
+    background-color: #ff0000;
+    border-radius: 50px 50px 0 0;
+    position: relative;
+}
+
+.hat-top::before {
+    content: "M";
+    position: absolute;
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.hat-brim {
+    width: 140px;
+    height: 20px;
+    background-color: #ff0000;
+    border-radius: 10px;
+    margin-top: -10px;
+    margin-left: -10px;
+}
+
+/* Mario's Hair */
+.hair {
+    position: absolute;
+    width: 120px;
+    height: 40px;
+    background-color: #4a3000;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 20px 20px 0 0;
+}
+
+/* Mario's Eyes */
 .eyes {
     position: absolute;
-    top: 30%;
+    top: 60px;
     width: 100%;
     display: flex;
-    justify-content: space-around;
-    padding: 0 20%;
+    justify-content: center;
+    gap: 30px;
 }
 
 .eye {
-    width: 20px;
-    height: 20px;
-    background: #333;
+    width: 25px;
+    height: 25px;
+    background-color: #4a3000;
     border-radius: 50%;
     position: relative;
 }
 
-.eye::after {
-    content: '';
+/* Mario's Nose */
+.nose {
     position: absolute;
-    top: 2px;
-    left: 2px;
-    width: 8px;
-    height: 8px;
-    background: white;
+    width: 30px;
+    height: 30px;
+    background-color: #ffb6a3;
     border-radius: 50%;
+    top: 85px;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 2px solid #4a3000;
 }
 
+/* Mario's Mustache */
+.mustache {
+    position: absolute;
+    top: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 30px;
+}
+
+.mustache-left, .mustache-right {
+    position: absolute;
+    width: 50px;
+    height: 20px;
+    background-color: #4a3000;
+    border-radius: 0 0 20px 20px;
+}
+
+.mustache-left {
+    left: 10px;
+    transform: rotate(10deg);
+}
+
+.mustache-right {
+    right: 10px;
+    transform: rotate(-10deg);
+}
+
+/* Mario's Mouth */
 .mouth {
     position: absolute;
-    bottom: 25%;
+    bottom: 40px;
     left: 50%;
     transform: translateX(-50%);
     width: 60px;
     height: 30px;
-    background: #ff9999;
+    background-color: #4a3000;
     border-radius: 0 0 30px 30px;
     overflow: hidden;
 }
@@ -90,22 +167,29 @@ body {
 .mouth-inner {
     width: 100%;
     height: 100%;
-    background: #ff6666;
-    border-radius: 50%;
+    background-color: #ff6b6b;
+    border-radius: 0 0 30px 30px;
     transform-origin: top;
-    animation: speak 0.5s infinite alternate;
+}
+
+@keyframes speak {
+    from {
+        transform: scaleY(0.3);
+    }
+    to {
+        transform: scaleY(1);
+    }
 }
 
 .speech-bubble {
     position: absolute;
     top: -80px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: white;
+    right: -120px;
+    background-color: white;
     padding: 15px;
-    border-radius: 10px;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
-    min-width: 200px;
+    border-radius: 20px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    min-width: 150px;
     text-align: center;
 }
 
@@ -113,11 +197,14 @@ body {
     content: '';
     position: absolute;
     bottom: -10px;
-    left: 50%;
-    transform: translateX(-50%);
-    border-left: 10px solid transparent;
-    border-right: 10px solid transparent;
-    border-top: 10px solid white;
+    left: 20px;
+    border-width: 10px 10px 0;
+    border-style: solid;
+    border-color: white transparent transparent;
+}
+
+.hidden {
+    display: none;
 }
 
 .controls {
@@ -145,24 +232,14 @@ body {
 
 #speak-btn {
     padding: 10px 20px;
-    background: #4CAF50;
+    background-color: #4CAF50;
     color: white;
     border: none;
     border-radius: 5px;
     cursor: pointer;
     font-size: 16px;
-    transition: background 0.3s;
 }
 
 #speak-btn:hover {
     background: #45a049;
-}
-
-.hidden {
-    display: none;
-}
-
-@keyframes speak {
-    0% { transform: scaleY(0.8); }
-    100% { transform: scaleY(1.2); }
 }
