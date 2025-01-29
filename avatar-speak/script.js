@@ -61,15 +61,24 @@ document.addEventListener('DOMContentLoaded', () => {
             voiceSelect.appendChild(option);
         }
         
-        // Add all other voices
-        voices.forEach((voice, index) => {
-            if (!voice.name.includes('Daniel')) {  // Skip Daniel as it's already added
+        // Add all other voices in a separate group
+        const otherVoices = voices.filter(voice => 
+            !voice.name.includes('Daniel')
+        );
+
+        if (otherVoices.length > 0) {
+            const groupOther = document.createElement('optgroup');
+            groupOther.label = 'Other Voices';
+            
+            otherVoices.forEach(voice => {
                 const option = document.createElement('option');
-                option.value = index;
+                option.value = voices.indexOf(voice);
                 option.textContent = `${voice.name} (${voice.lang})`;
-                voiceSelect.appendChild(option);
-            }
-        });
+                groupOther.appendChild(option);
+            });
+            
+            voiceSelect.appendChild(groupOther);
+        }
     }
 
     // Handle voices changed event
