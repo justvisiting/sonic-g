@@ -4,11 +4,48 @@ document.addEventListener('DOMContentLoaded', () => {
     const speechText = document.getElementById('speech-text');
     const speechBubble = document.querySelector('.speech-bubble');
     const voiceSelect = document.getElementById('voice-select');
+    const avatarSelect = document.getElementById('avatar-select');
     const mouth = document.querySelector('.mouth-inner');
 
     // Initialize speech synthesis
     const synth = window.speechSynthesis;
     let voices = [];
+
+    // Avatar configurations
+    const avatarConfigs = {
+        'default': {
+            processText: (text) => text,
+            voiceSettings: () => ({
+                rate: 0.9,  // Slightly slower for rhythm
+                pitch: 1.0
+            })
+        },
+        'cool-cat': {
+            processText: (text) => {
+                // Convert each word to meow
+                const words = text.split(/\s+/);
+                return words.map(() => 'meow').join(' ');
+            },
+            voiceSettings: (text) => ({
+                pitch: 1.0 + (text.length % 5) * 0.2,  // Vary pitch based on text length
+                rate: 0.8  // Slower for more distinct meows
+            })
+        },
+        'robot': {
+            processText: (text) => text,
+            voiceSettings: () => ({
+                pitch: 0.7,
+                rate: 0.7  // Slower for robotic rhythm
+            })
+        },
+        'alien': {
+            processText: (text) => text,
+            voiceSettings: () => ({
+                pitch: 1.3,
+                rate: 1.1  // Slightly faster but still rhythmic
+            })
+        }
+    };
 
     // Populate voice options
     function populateVoices() {
@@ -35,29 +72,41 @@ document.addEventListener('DOMContentLoaded', () => {
         speechText.textContent = text;
         speechBubble.classList.remove('hidden');
 
-        // Create utterance with "meow"
-        const utterance = new SpeechSynthesisUtterance("meow");
+        const selectedAvatar = avatarSelect.value;
+        const avatarConfig = avatarConfigs[selectedAvatar];
+        
+        // Process text based on avatar type
+        const processedText = avatarConfig.processText(text);
+        
+        // Clear any existing speech
+        synth.cancel();
+
+        // Split text into words and add rhythmic pauses
+        const words = processedText.split(/\s+/);
+        let utteranceText = words.join(' . '); // Add pauses between words
+        
+        const utterance = new SpeechSynthesisUtterance(utteranceText);
         
         // Set selected voice
         if (voiceSelect.value !== '') {
             utterance.voice = voices[voiceSelect.value];
         }
 
-        // Calculate pitch based on input text
-        // Use text length to vary pitch between 0.5 and 2
-        const basePitch = 1.0;
-        const pitchVariation = (text.length % 10) / 5; // Will give value between 0 and 2
-        utterance.pitch = Math.max(0.5, Math.min(2, basePitch + pitchVariation));
+        // Get voice settings
+        const settings = avatarConfig.voiceSettings(text);
 
-        // Adjust rate based on text characteristics
-        const hasUpperCase = /[A-Z]/.test(text);
-        utterance.rate = hasUpperCase ? 1.2 : 0.8;
+        // Apply voice settings and add rhythm
+        Object.assign(utterance, {
+            ...settings,
+            rate: settings.rate || 1, // Use configured rate or default
+            pitch: settings.pitch || 1, // Use configured pitch or default
+        });
 
         // Start speaking
         synth.speak(utterance);
 
-        // Start mouth animation
-        mouth.style.animation = 'speak 0.2s infinite alternate';
+        // Start mouth animation with rhythm
+        mouth.style.animation = 'speak 0.3s infinite alternate';
 
         // Handle speech end
         utterance.onend = () => {
