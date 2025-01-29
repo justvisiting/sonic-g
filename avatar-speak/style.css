@@ -14,10 +14,11 @@ body {
 }
 
 .container {
-    max-width: 800px;
+    max-width: 1200px;
     margin: 0 auto;
     padding: 20px;
     text-align: center;
+    position: relative;
 }
 
 .game-area {
@@ -26,6 +27,8 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
+    width: 70%;
+    margin: 0 auto;
 }
 
 .avatar {
@@ -245,13 +248,16 @@ body {
 }
 
 .instruction-sign {
+    position: fixed;
+    top: 20px;
+    right: 20px;
     background-color: #fff9e6;
     border: 2px solid #ffd700;
     border-radius: 10px;
     padding: 20px;
-    margin: 20px auto;
-    max-width: 500px;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    width: 300px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
 }
 
 .instruction-sign h2 {
@@ -265,11 +271,13 @@ body {
 .instruction-sign ol {
     margin: 0;
     padding-left: 25px;
+    text-align: left;
 }
 
 .instruction-sign li {
     margin: 10px 0;
     line-height: 1.5;
+    font-size: 14px;
 }
 
 .instruction-sign ul {
@@ -280,6 +288,7 @@ body {
 .instruction-sign ul li {
     margin: 5px 0;
     color: #666;
+    font-size: 13px;
 }
 
 .tip {
@@ -290,4 +299,5 @@ body {
     margin-top: 5px;
     color: #ff4500;
     font-weight: bold;
+    font-size: 13px;
 }
