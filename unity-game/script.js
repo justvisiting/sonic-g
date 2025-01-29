@@ -67,20 +67,33 @@ function updateCharacterBasedOnScore() {
     }
 }
 
-// Modify the score checking section to ensure Eggman stops shooting at score 0
+// Modify the score checking section to remove spiky balls logic
 setInterval(() => {
     if (!isGameOver) {
         const sonicRect = sonic.getBoundingClientRect();
         const monsterRect = monster.getBoundingClientRect();
         
-        // Original collision detection logic
+        // Collision detection logic
         if (sonicRect.right > monsterRect.left && 
             sonicRect.left < monsterRect.right && 
             sonicRect.bottom > monsterRect.top && 
             sonicRect.top < monsterRect.bottom) {
-            isGameOver = true;
-            monster.style.animation = 'none';
-            gameOver.classList.remove('hidden'); // Show game over message
+            
+            // Check if the monster has both eyes
+            const monsterSvg = document.querySelector('.monster-svg');
+            const leftEyeVisible = monsterSvg.querySelector('.left-eye').style.display !== 'none';
+            const rightEyeVisible = monsterSvg.querySelector('.right-eye').style.display !== 'none';
+
+            if (leftEyeVisible && rightEyeVisible) {
+                // Increase score by 20 if the monster has both eyes
+                score += 20;
+                scoreSpan.textContent = score;
+            } else {
+                // End the game if the monster does not have both eyes
+                isGameOver = true;
+                monster.style.animation = 'none';
+                gameOver.classList.remove('hidden'); // Show game over message
+            }
         }
         
         // Increase score and check for character selection
@@ -140,4 +153,40 @@ document.querySelectorAll('.character-option').forEach(option => {
         characterSelect.classList.add('hidden');
         monster.style.animation = 'monsterMove 1.5s infinite linear'; // Ensure constant speed
     });
-}); 
+});
+
+function randomizeMonsterEyes() {
+    const monsterSvg = document.querySelector('.monster-svg');
+    const leftEye = monsterSvg.querySelector('.left-eye');
+    const rightEye = monsterSvg.querySelector('.right-eye');
+    const leftPupil = monsterSvg.querySelector('.left-pupil');
+    const rightPupil = monsterSvg.querySelector('.right-pupil');
+
+    // Reset eyes to visible
+    leftEye.style.display = '';
+    leftPupil.style.display = '';
+    rightEye.style.display = '';
+    rightPupil.style.display = '';
+
+    // Randomly decide the eye configuration
+    const randomValue = Math.random();
+
+    if (randomValue < 0.33) {
+        // Remove left eye
+        leftEye.style.display = 'none';
+        leftPupil.style.display = 'none';
+    } else if (randomValue < 0.66) {
+        // Remove right eye
+        rightEye.style.display = 'none';
+        rightPupil.style.display = 'none';
+    }
+}
+
+// Ensure this function is called when a new monster is created
+function createNewMonster() {
+    // Logic to create a new monster
+    randomizeMonsterEyes(); // Randomize eyes for the new monster
+}
+
+// Call createNewMonster when needed
+createNewMonster(); 
