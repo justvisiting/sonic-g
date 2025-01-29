@@ -4,12 +4,15 @@ const scoreSpan = document.getElementById('scoreSpan');
 const gameOver = document.getElementById('gameOver');
 const characterSelect = document.getElementById('characterSelect');
 const highScoreSpan = document.getElementById('highScoreSpan');
+const gameArea = document.querySelector('.game-area');
+const spikes = document.getElementById('spikes');
 
 let score = 0;
 let isJumping = false;
 let isGameOver = false;
 let characterSelectShown = false;
 let highScore = localStorage.getItem('highScore') || 0;
+let spikesActive = false;
 highScoreSpan.textContent = highScore;
 
 // Jump function
@@ -20,10 +23,9 @@ function jump() {
 
         setTimeout(() => {
             sonic.classList.remove('jump');
-            // Add a small delay before allowing next jump
             setTimeout(() => {
                 isJumping = false;
-            }, 100); // 100ms cooldown between jumps
+            }, 100);
         }, 500);
     }
 }
@@ -67,6 +69,52 @@ function updateCharacterBasedOnScore() {
     }
 }
 
+// Add jump controls
+function handleJump(event) {
+    // For spacebar
+    if (event.type === 'keydown' && event.code === 'Space') {
+        event.preventDefault();
+        if (isGameOver) {
+            restartGame();
+        } else {
+            jump();
+        }
+    }
+    // For mouse click
+    else if (event.type === 'click') {
+        if (event.target.closest('.character-select') || event.target.closest('.game-over')) {
+            return;
+        }
+        if (isGameOver) {
+            restartGame();
+        } else {
+            jump();
+        }
+    }
+}
+
+// Function to randomly show spikes
+function activateSpikes() {
+    if (!isGameOver && Math.random() < 0.3) { // 30% chance to show spikes
+        spikesActive = true;
+        spikes.classList.add('active');
+        spikes.style.left = '0';
+        spikes.style.animation = 'spikesMove 2s linear';
+        
+        setTimeout(() => {
+            spikes.classList.remove('active');
+            spikes.style.animation = 'none';
+            spikesActive = false;
+            setTimeout(() => {
+                spikes.style.left = '-60px';
+            }, 100);
+        }, 2000);
+    }
+}
+
+// Start spike generation
+setInterval(activateSpikes, 3000); // Try to generate spikes every 3 seconds
+
 // Modify the score checking section to remove spiky balls logic
 setInterval(() => {
     if (!isGameOver) {
@@ -79,24 +127,27 @@ setInterval(() => {
             sonicRect.bottom > monsterRect.top && 
             sonicRect.top < monsterRect.bottom) {
             
-            // Check if the monster has both eyes
-            const monsterSvg = document.querySelector('.monster-svg');
-            const leftEyeVisible = monsterSvg.querySelector('.left-eye').style.display !== 'none';
-            const rightEyeVisible = monsterSvg.querySelector('.right-eye').style.display !== 'none';
-
-            if (leftEyeVisible && rightEyeVisible) {
-                // Increase score by 20 if the monster has both eyes
-                score += 20;
-                scoreSpan.textContent = score;
-            } else {
-                // End the game if the monster does not have both eyes
+            // End game on collision
+            isGameOver = true;
+            monster.style.animation = 'none';
+            gameOver.classList.remove('hidden');
+        }
+        
+        // Spike collision detection
+        if (spikesActive) {
+            const spikesRect = spikes.getBoundingClientRect();
+            if (sonicRect.right > spikesRect.left && 
+                sonicRect.left < spikesRect.right && 
+                sonicRect.bottom > spikesRect.top) {
+                
+                // End game on spike collision
                 isGameOver = true;
                 monster.style.animation = 'none';
-                gameOver.classList.remove('hidden'); // Show game over message
+                gameOver.classList.remove('hidden');
             }
         }
         
-        // Increase score and check for character selection
+        // Increase score when passing a monster
         if (monsterRect.right < sonicRect.left && !monsterRect.scored) {
             score++;
             scoreSpan.textContent = score;
@@ -105,8 +156,8 @@ setInterval(() => {
             // Update high score
             if (score > highScore) {
                 highScore = score;
-                highScoreSpan.textContent = highScore;
                 localStorage.setItem('highScore', highScore);
+                highScoreSpan.textContent = highScore;
             }
             
             // Show character selection at score 50
@@ -118,32 +169,36 @@ setInterval(() => {
                 // Hide Knuckles option
                 document.querySelector('.character-option[data-image="./images/knuckles.png"]').style.display = 'none';
             }
+            
+            // Update character based on score
+            updateCharacterBasedOnScore();
         }
-
-        // Check and update character based on score
-        updateCharacterBasedOnScore();
+        
+        // Reset monster when it goes off screen
+        if (monsterRect.right < 0) {
+            monster.style.animation = 'none';
+            setTimeout(() => {
+                monster.style.animation = 'monsterMove 1.5s infinite linear';
+                monsterRect.scored = false;
+                randomizeMonsterEyes();
+            }, 0);
+        }
     }
 }, 10);
+
+// Add event listeners
+document.addEventListener('keydown', handleJump);
+gameArea.addEventListener('click', handleJump);
+
+// Wait for DOM to be fully loaded
+document.addEventListener('DOMContentLoaded', () => {
+    // Make container clickable
+    document.querySelector('.container').style.cursor = 'pointer';
+});
 
 // Optionally, we can also ignore keydown events that happen too quickly
 let lastJumpTime = 0;
 const JUMP_COOLDOWN = 600; // 600ms total cooldown (500ms jump + 100ms delay)
-
-// Event listeners
-document.addEventListener('keydown', (event) => {
-    if (event.code === 'Space') {
-        const currentTime = Date.now();
-        if (!isGameOver) {
-            if (currentTime - lastJumpTime >= JUMP_COOLDOWN) {
-                jump();
-                lastJumpTime = currentTime;
-            }
-        } else {
-            restartGame();
-        }
-        event.preventDefault();
-    }
-});
 
 // Add character selection event listeners
 document.querySelectorAll('.character-option').forEach(option => {
