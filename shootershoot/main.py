@@ -49,9 +49,13 @@ class Player(pygame.sprite.Sprite):
         self.rect.bottom = SCREEN_HEIGHT - 10
         self.speed_x = 0
         self.double_shot = False
+        self.triple_shot = False
         self.power_up_timer = 0
+        self.triple_shot_timer = 0
         self.power_up_duration = 300  # Duration in frames (5 seconds at 60 FPS)
+        self.triple_shot_duration = 180  # Duration in frames (3 seconds at 60 FPS)
         self.stars_collected = 0
+        self.bonus_stars = 0
         self.permanent_power = False
 
     def update(self):
@@ -68,18 +72,39 @@ class Player(pygame.sprite.Sprite):
                 self.double_shot = False
                 self.power_up_timer = 0
 
+        # Update triple shot timer
+        if self.triple_shot:
+            self.triple_shot_timer += 1
+            if self.triple_shot_timer >= self.triple_shot_duration:
+                self.triple_shot = False
+                self.triple_shot_timer = 0
+
     def collect_star(self):
         self.stars_collected += 1
+        self.bonus_stars += 1
+        
+        # Check for permanent double shots
         if self.stars_collected >= 5:
             self.permanent_power = True
             self.double_shot = True
-        else:
+        elif not self.permanent_power:
             self.double_shot = True
             self.power_up_timer = 0
+            
+        # Check for temporary triple shots
+        if self.bonus_stars >= 10:
+            self.triple_shot = True
+            self.triple_shot_timer = 0
+            self.bonus_stars = 0  # Reset bonus stars after triple shot
 
     def shoot(self):
         bullets = []
-        if self.double_shot:
+        if self.triple_shot:
+            # Create three bullets
+            bullets.append(Bullet(self.rect.centerx + 5, self.rect.top))
+            bullets.append(Bullet(self.rect.centerx + 15, self.rect.top))
+            bullets.append(Bullet(self.rect.centerx + 25, self.rect.top))
+        elif self.double_shot:
             # Create two bullets side by side
             bullets.append(Bullet(self.rect.centerx + 10, self.rect.top))
             bullets.append(Bullet(self.rect.centerx + 20, self.rect.top))
@@ -237,12 +262,19 @@ while running:
     
     all_sprites.draw(screen)
 
-    # Draw star counter
-    star_text = f"Stars: {player.stars_collected}/5"
+    # Draw star counters
+    star_text = f"Double Shot Stars: {min(player.stars_collected, 5)}/5"
     if player.permanent_power:
-        star_text += " (PERMANENT POWER!)"
+        star_text += " (PERMANENT!)"
     text_surface = font.render(star_text, True, YELLOW)
     screen.blit(text_surface, (10, 10))
+
+    # Draw bonus star counter for triple shot
+    bonus_text = f"Triple Shot Stars: {player.bonus_stars}/10"
+    if player.triple_shot:
+        bonus_text += f" (ACTIVE: {(player.triple_shot_duration - player.triple_shot_timer) // 60}s)"
+    bonus_surface = font.render(bonus_text, True, YELLOW)
+    screen.blit(bonus_surface, (10, 40))
 
     pygame.display.flip()
 
