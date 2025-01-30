@@ -51,6 +51,8 @@ class Player(pygame.sprite.Sprite):
         self.double_shot = False
         self.power_up_timer = 0
         self.power_up_duration = 300  # Duration in frames (5 seconds at 60 FPS)
+        self.stars_collected = 0
+        self.permanent_power = False
 
     def update(self):
         self.rect.x += self.speed_x
@@ -59,12 +61,21 @@ class Player(pygame.sprite.Sprite):
         if self.rect.left < 0:
             self.rect.left = 0
             
-        # Update power-up timer
-        if self.double_shot:
+        # Update power-up timer only if not permanent
+        if self.double_shot and not self.permanent_power:
             self.power_up_timer += 1
             if self.power_up_timer >= self.power_up_duration:
                 self.double_shot = False
                 self.power_up_timer = 0
+
+    def collect_star(self):
+        self.stars_collected += 1
+        if self.stars_collected >= 5:
+            self.permanent_power = True
+            self.double_shot = True
+        else:
+            self.double_shot = True
+            self.power_up_timer = 0
 
     def shoot(self):
         bullets = []
@@ -169,6 +180,8 @@ for i in range(8):
 
 # Game loop
 running = True
+font = pygame.font.Font(None, 36)  # Initialize font for star counter
+
 while running:
     # Event handling
     for event in pygame.event.get():
@@ -208,8 +221,7 @@ while running:
     # Check for player-power_up collisions
     power_up_hits = pygame.sprite.spritecollide(player, power_ups, True)
     if power_up_hits:
-        player.double_shot = True
-        player.power_up_timer = 0
+        player.collect_star()
 
     # Check for player-enemy collisions
     hits = pygame.sprite.spritecollide(player, enemies, False)
@@ -219,11 +231,19 @@ while running:
     # Draw
     screen.fill(BLACK)
     
-    # Draw stars
+    # Draw stars background
     for star in stars:
         pygame.draw.circle(screen, WHITE, (star.x, star.y), star.size)
     
     all_sprites.draw(screen)
+
+    # Draw star counter
+    star_text = f"Stars: {player.stars_collected}/5"
+    if player.permanent_power:
+        star_text += " (PERMANENT POWER!)"
+    text_surface = font.render(star_text, True, YELLOW)
+    screen.blit(text_surface, (10, 10))
+
     pygame.display.flip()
 
     # Cap the frame rate
