@@ -21,6 +21,7 @@ BLUE = (30, 144, 255)
 GRAY = (128, 128, 128)
 DARK_BLUE = (0, 0, 139)
 NAVY = (0, 0, 128)
+YELLOW = (255, 255, 0)  # Color for power-ups
 
 # Set up the display
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -47,6 +48,9 @@ class Player(pygame.sprite.Sprite):
         self.rect.centerx = SCREEN_WIDTH // 2
         self.rect.bottom = SCREEN_HEIGHT - 10
         self.speed_x = 0
+        self.double_shot = False
+        self.power_up_timer = 0
+        self.power_up_duration = 300  # Duration in frames (5 seconds at 60 FPS)
 
     def update(self):
         self.rect.x += self.speed_x
@@ -54,6 +58,24 @@ class Player(pygame.sprite.Sprite):
             self.rect.right = SCREEN_WIDTH
         if self.rect.left < 0:
             self.rect.left = 0
+            
+        # Update power-up timer
+        if self.double_shot:
+            self.power_up_timer += 1
+            if self.power_up_timer >= self.power_up_duration:
+                self.double_shot = False
+                self.power_up_timer = 0
+
+    def shoot(self):
+        bullets = []
+        if self.double_shot:
+            # Create two bullets side by side
+            bullets.append(Bullet(self.rect.centerx + 10, self.rect.top))
+            bullets.append(Bullet(self.rect.centerx + 20, self.rect.top))
+        else:
+            # Create single bullet
+            bullets.append(Bullet(self.rect.centerx + 15, self.rect.top))
+        return bullets
 
 class Bullet(pygame.sprite.Sprite):
     def __init__(self, x, y):
@@ -91,6 +113,27 @@ class Enemy(pygame.sprite.Sprite):
             self.rect.x = random.randrange(SCREEN_WIDTH - self.rect.width)
             self.rect.y = random.randrange(-100, -40)
 
+class PowerUp(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__()
+        self.image = pygame.Surface((15, 15), pygame.SRCALPHA)
+        # Draw a star shape for power-up
+        pygame.draw.polygon(self.image, YELLOW, [
+            (7, 0), (9, 5), (14, 5),
+            (10, 8), (11, 13), (7, 10),
+            (3, 13), (4, 8), (0, 5),
+            (5, 5)
+        ])
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+        self.speed_y = 2
+
+    def update(self):
+        self.rect.y += self.speed_y
+        if self.rect.top > SCREEN_HEIGHT:
+            self.kill()
+
 # Background stars
 class Star:
     def __init__(self):
@@ -112,6 +155,7 @@ stars = [Star() for _ in range(50)]
 all_sprites = pygame.sprite.Group()
 bullets = pygame.sprite.Group()
 enemies = pygame.sprite.Group()
+power_ups = pygame.sprite.Group()  # New group for power-ups
 
 # Create player
 player = Player()
@@ -132,9 +176,11 @@ while running:
             running = False
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
-                bullet = Bullet(player.rect.centerx + 15, player.rect.top)  # Adjust bullet position
-                all_sprites.add(bullet)
-                bullets.add(bullet)
+                # Use the new shoot method
+                new_bullets = player.shoot()
+                for bullet in new_bullets:
+                    all_sprites.add(bullet)
+                    bullets.add(bullet)
 
     # Get pressed keys
     keys = pygame.key.get_pressed()
@@ -150,9 +196,20 @@ while running:
     # Check for bullet-enemy collisions
     hits = pygame.sprite.groupcollide(enemies, bullets, True, True)
     for hit in hits:
+        # 20% chance to spawn a power-up when enemy is destroyed
+        if random.random() < 0.2:
+            power_up = PowerUp(hit.rect.centerx, hit.rect.centery)
+            all_sprites.add(power_up)
+            power_ups.add(power_up)
         enemy = Enemy()
         all_sprites.add(enemy)
         enemies.add(enemy)
+
+    # Check for player-power_up collisions
+    power_up_hits = pygame.sprite.spritecollide(player, power_ups, True)
+    if power_up_hits:
+        player.double_shot = True
+        player.power_up_timer = 0
 
     # Check for player-enemy collisions
     hits = pygame.sprite.spritecollide(player, enemies, False)
