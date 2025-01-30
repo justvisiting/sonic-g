@@ -64,7 +64,7 @@ function updateCharacterBasedOnScore() {
     }
 
     // If score is less than 50 and character is Tails, revert to Sonic
-    if (currentImage === tailsImage && score < 50) {
+    if (currentImage === tailsImage && score < 10) {
         sonic.style.backgroundImage = sonicImage;
     }
 }
