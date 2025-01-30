@@ -78,11 +78,9 @@ class Player(pygame.sprite.Sprite):
             if self.triple_shot_timer >= self.triple_shot_duration:
                 self.triple_shot = False
                 self.triple_shot_timer = 0
-                # Reset to single shot after triple shot expires
+                # Just reset shooting to single shot, keep the stars
                 self.double_shot = False
                 self.permanent_power = False
-                self.stars_collected = 0
-                self.bonus_stars = 0
 
     def collect_star(self):
         self.stars_collected += 1
@@ -102,7 +100,6 @@ class Player(pygame.sprite.Sprite):
         if self.bonus_stars >= 10:
             self.triple_shot = True
             self.triple_shot_timer = 0
-            self.bonus_stars = 0  # Reset bonus stars after triple shot
 
     def shoot(self):
         bullets = []
@@ -279,19 +276,27 @@ while running:
         countdown_text = f"Time left: {(player.triple_shot_duration - player.triple_shot_timer) // 60}s"
         countdown_surface = font.render(countdown_text, True, YELLOW)
         screen.blit(countdown_surface, (10, 40))
+        
+        # Show current star count
+        star_count_text = f"Stars: {player.stars_collected}"
+        star_count_surface = font.render(star_count_text, True, YELLOW)
+        screen.blit(star_count_surface, (10, 70))
     else:
-        star_text = f"Stars: {min(player.stars_collected, 5)}/5"
+        # Always show the 0/5 counter
+        star_text = f"Double Shot Stars: {min(player.stars_collected, 5)}/5"
         if player.permanent_power:
-            star_text += " (PERMANENT DOUBLE SHOT!)"
+            star_text += " (PERMANENT!)"
         elif player.double_shot:
-            star_text += f" (Double Shot: {(player.power_up_duration - player.power_up_timer) // 60}s)"
+            star_text += f" (Active: {(player.power_up_duration - player.power_up_timer) // 60}s)"
         text_surface = font.render(star_text, True, YELLOW)
         screen.blit(text_surface, (10, 10))
 
+        # Always show the 0/10 counter
+        bonus_text = f"Triple Shot Stars: {player.bonus_stars}/10"
         if player.permanent_power:
-            bonus_text = f"Bonus Stars: {player.bonus_stars}/10 for Triple Shot"
-            bonus_surface = font.render(bonus_text, True, YELLOW)
-            screen.blit(bonus_surface, (10, 40))
+            bonus_text += " (Collect for Triple Shot!)"
+        bonus_surface = font.render(bonus_text, True, YELLOW)
+        screen.blit(bonus_surface, (10, 40))
 
     pygame.display.flip()
 
