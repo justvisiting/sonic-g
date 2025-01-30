@@ -52,7 +52,7 @@ class Player(pygame.sprite.Sprite):
         self.triple_shot = False
         self.power_up_timer = 0
         self.triple_shot_timer = 0
-        self.power_up_duration = 300  # Duration in frames (5 seconds at 60 FPS)
+        self.power_up_duration = 180  # Duration in frames (3 seconds at 60 FPS)
         self.triple_shot_duration = 180  # Duration in frames (3 seconds at 60 FPS)
         self.stars_collected = 0
         self.bonus_stars = 0
@@ -87,7 +87,8 @@ class Player(pygame.sprite.Sprite):
         if self.stars_collected >= 5:
             self.permanent_power = True
             self.double_shot = True
-        elif not self.permanent_power:
+        else:
+            # Temporary double shot for 3 seconds
             self.double_shot = True
             self.power_up_timer = 0
             
@@ -266,6 +267,8 @@ while running:
     star_text = f"Double Shot Stars: {min(player.stars_collected, 5)}/5"
     if player.permanent_power:
         star_text += " (PERMANENT!)"
+    elif player.double_shot:
+        star_text += f" (ACTIVE: {(player.power_up_duration - player.power_up_timer) // 60}s)"
     text_surface = font.render(star_text, True, YELLOW)
     screen.blit(text_surface, (10, 10))
 
