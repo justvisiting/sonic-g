@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/scrollView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true">
@@ -8,9 +9,10 @@
         android:id="@+id/debugLogView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="16dp"
-        android:textIsSelectable="true"
+        android:padding="8dp"
+        android:textSize="12sp"
         android:typeface="monospace"
-        android:textSize="12sp" />
+        android:textColor="@android:color/black"
+        android:background="@android:color/white" />
 
-</androidx.core.widget.NestedScrollView>
+</ScrollView>

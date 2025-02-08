@@ -52,6 +52,10 @@
         "source": "/Users/vc/.gradle/daemon/8.10.2/com.example.speechapp-main-34:/drawable/chat_bubble_background.xml"
     },
     {
+        "merged": "com.example.speechapp-merged_res-32:/layout_fragment_debug.xml.flat",
+        "source": "com.example.speechapp-main-34:/layout/fragment_debug.xml"
+    },
+    {
         "merged": "/Users/vc/.gradle/daemon/8.10.2/com.example.speechapp-merged_res-32:/layout_item_message_user.xml.flat",
         "source": "/Users/vc/.gradle/daemon/8.10.2/com.example.speechapp-main-34:/layout/item_message_user.xml"
     },
@@ -78,9 +82,5 @@
     {
         "merged": "/Users/vc/.gradle/daemon/8.10.2/com.example.speechapp-merged_res-32:/mipmap-xxxhdpi_ic_launcher_round.xml.flat",
         "source": "/Users/vc/.gradle/daemon/8.10.2/com.example.speechapp-main-34:/mipmap-xxxhdpi/ic_launcher_round.xml"
-    },
-    {
-        "merged": "com.example.speechapp-merged_res-32:/layout_activity_main.xml.flat",
-        "source": "com.example.speechapp-main-34:/layout/activity_main.xml"
     }
 ]

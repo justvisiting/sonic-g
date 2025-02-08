@@ -36,6 +36,7 @@ id micImage
 id navigation_chat
 id navigation_debug
 id saveButton
+id scrollView
 id sendButton
 id statusText
 id tabLayout
