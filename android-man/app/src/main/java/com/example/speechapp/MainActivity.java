@@ -1,7 +1,9 @@
 package com.example.speechapp;
 
+import android.Manifest;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -10,11 +12,13 @@ import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.preference.PreferenceManager;
 import androidx.viewpager2.widget.ViewPager2;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
@@ -30,24 +34,26 @@ public class MainActivity extends AppCompatActivity {
     private static final String API_KEY_PREF = "gemini_api_key";
     private static final String DEBUG_MODE_PREF = "debug_mode";
     private static final String LANGUAGE_PREF = "language";
+    private static final long DOUBLE_ENTER_THRESHOLD = 500; // milliseconds
 
     private EditText chatInput;
     private ImageButton sendButton;
-    private boolean quizMode = false;
-    private boolean quizPaused = false;
-    private GeminiAPI geminiAPI;
-    private Handler mainHandler;
-    private Menu optionsMenu;
-    private long lastEnterTime = 0;
-    private static final long DOUBLE_ENTER_THRESHOLD = 500; // milliseconds
-    private boolean lastKeyWasEnter = false;
-    private String currentLanguage = "english";
-
-    private TabLayout tabLayout;
-    private ViewPager2 viewPager;
+    private ImageButton micButton;
+    private VoiceInputView voiceInputView;
     private ChatFragment chatFragment;
     private DebugLogFragment debugFragment;
+    private ViewPager2 viewPager;
+    private TabLayout tabLayout;
+    private GeminiAPI geminiAPI;
+    private VoiceManager voiceManager;
+    private Handler mainHandler;
+    private Menu optionsMenu;
+    private boolean quizMode = false;
+    private boolean quizPaused = false;
     private boolean isDebugMode = false;
+    private boolean lastKeyWasEnter = false;
+    private long lastEnterTime = 0;
+    private String currentLanguage = "english";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +62,7 @@ public class MainActivity extends AppCompatActivity {
         // Load preferences
         SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         currentLanguage = prefs.getString(LANGUAGE_PREF, "english");
+        isDebugMode = prefs.getBoolean(DEBUG_MODE_PREF, false);
         
         setContentView(R.layout.activity_main);
         mainHandler = new Handler(Looper.getMainLooper());
@@ -67,15 +74,80 @@ public class MainActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayShowTitleEnabled(false);
         }
 
-        // Initialize views
+        // Initialize UI components
         chatInput = findViewById(R.id.chatInput);
         sendButton = findViewById(R.id.sendButton);
-        tabLayout = findViewById(R.id.tabLayout);
+        micButton = findViewById(R.id.micButton);
+        voiceInputView = findViewById(R.id.voiceInputView);
         viewPager = findViewById(R.id.viewPager);
+        tabLayout = findViewById(R.id.tabLayout);
 
         // Initialize fragments
         chatFragment = new ChatFragment();
         debugFragment = new DebugLogFragment();
+
+        // Initialize APIs
+        geminiAPI = new GeminiAPI(this, debugFragment);
+        voiceManager = new VoiceManager(this, new VoiceManager.VoiceCallback() {
+            @Override
+            public void onSpeechResult(String text) {
+                runOnUiThread(() -> {
+                    chatInput.setText(text);
+                    processUserInput(text);
+                    voiceInputView.stopAnimation();
+                    voiceInputView.setVisibility(View.GONE);
+                });
+            }
+
+            @Override
+            public void onSpeechError(String error) {
+                runOnUiThread(() -> {
+                    Toast.makeText(MainActivity.this, error, Toast.LENGTH_SHORT).show();
+                    updateMicButtonState(false);
+                });
+            }
+
+            @Override
+            public void onListeningStarted() {
+                runOnUiThread(() -> {
+                    updateMicButtonState(true);
+                    voiceInputView.setVisibility(View.VISIBLE);
+                    voiceInputView.startAnimation();
+                });
+            }
+
+            @Override
+            public void onListeningStopped() {
+                runOnUiThread(() -> {
+                    updateMicButtonState(false);
+                    // Don't hide the view here, let the status changes control visibility
+                });
+            }
+
+            @Override
+            public void onStatusChanged(VoiceInputView.VoiceStatus status) {
+                runOnUiThread(() -> {
+                    if (voiceInputView != null) {
+                        voiceInputView.setStatus(status);
+                        
+                        // Handle visibility based on status
+                        switch (status) {
+                            case LISTENING:
+                            case PROCESSING:
+                                voiceInputView.setVisibility(View.VISIBLE);
+                                break;
+                            case ERROR:
+                                // Show error briefly then hide
+                                voiceInputView.setVisibility(View.VISIBLE);
+                                new Handler().postDelayed(() -> {
+                                    voiceInputView.setVisibility(View.GONE);
+                                }, 2000);
+                                break;
+                        }
+                    }
+                });
+            }
+        });
 
         // Set up ViewPager
         ViewPagerAdapter pagerAdapter = new ViewPagerAdapter(this, chatFragment, debugFragment);
@@ -86,39 +158,22 @@ public class MainActivity extends AppCompatActivity {
             (tab, position) -> tab.setText(position == 0 ? "Chat" : "Debug")
         ).attach();
 
-        // Check debug mode
-        isDebugMode = prefs.getBoolean(DEBUG_MODE_PREF, false);
-        Log.d(TAG, "Debug mode is: " + isDebugMode);
+        // Setup click listeners
+        setupClickListeners();
         
-        // Always show tabs, but only show debug tab if debug mode is enabled
+        // Request necessary permissions
+        requestPermissions();
+
+        // Update debug tab visibility
         updateDebugTabVisibility();
 
-        // Initialize Gemini API with language preference
-        geminiAPI = new GeminiAPI(this, debugFragment);
+        // Set language preference in Gemini API
         geminiAPI.setLanguage(currentLanguage);
 
-        // Set up chat input
-        chatInput.setOnEditorActionListener((v, actionId, event) -> {
-            if (event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
-                long currentTime = System.currentTimeMillis();
-                if (lastKeyWasEnter && currentTime - lastEnterTime < DOUBLE_ENTER_THRESHOLD) {
-                    // Double enter detected
-                    String text = chatInput.getText().toString().trim();
-                    if (!text.isEmpty()) {
-                        processUserInput(text);
-                        chatInput.setText("");
-                        lastKeyWasEnter = false;
-                        return true;
-                    }
-                }
-                lastKeyWasEnter = true;
-                lastEnterTime = currentTime;
-            } else {
-                lastKeyWasEnter = false;
-            }
-            return false;
-        });
+        Log.d(TAG, "Debug mode is: " + isDebugMode);
+    }
 
+    private void setupClickListeners() {
         sendButton.setOnClickListener(v -> {
             String text = chatInput.getText().toString().trim();
             if (!text.isEmpty()) {
@@ -127,13 +182,44 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // Check if API key is set
-        checkApiKey();
+        micButton.setOnClickListener(v -> {
+            voiceManager.toggleListening();
+        });
 
-        // Add welcome message
-        String message = "नमस्ते! मैं आपकी कैसे मदद कर सकता हूं? क्विज़ शुरू करने के लिए 'Start Quiz' बटन दबाएं।";
-        String hindiMessage = transliterateToHindi(message);
-        addBotMessage(hindiMessage, message);
+        chatInput.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_SEND) {
+                String text = chatInput.getText().toString().trim();
+                if (!text.isEmpty()) {
+                    processUserInput(text);
+                    chatInput.setText("");
+                }
+                return true;
+            }
+            return false;
+        });
+
+        chatInput.setOnKeyListener((v, keyCode, event) -> {
+            if (event.getAction() == KeyEvent.ACTION_DOWN) {
+                long currentTime = System.currentTimeMillis();
+                
+                if (keyCode == KeyEvent.KEYCODE_ENTER) {
+                    if (lastKeyWasEnter && currentTime - lastEnterTime < DOUBLE_ENTER_THRESHOLD) {
+                        String text = chatInput.getText().toString().trim();
+                        if (!text.isEmpty()) {
+                            processUserInput(text);
+                            chatInput.setText("");
+                            lastKeyWasEnter = false;
+                            return true;
+                        }
+                    }
+                    lastKeyWasEnter = true;
+                    lastEnterTime = currentTime;
+                } else {
+                    lastKeyWasEnter = false;
+                }
+            }
+            return false;
+        });
     }
 
     @Override
@@ -527,6 +613,49 @@ public class MainActivity extends AppCompatActivity {
             tabLayout.getTabAt(1).view.setVisibility(View.GONE);
         } else {
             tabLayout.getTabAt(1).view.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void updateMicButtonState(boolean isListening) {
+        micButton.setImageResource(isListening ? 
+            android.R.drawable.ic_media_pause : 
+            android.R.drawable.ic_btn_speak_now);
+    }
+
+    private void requestPermissions() {
+        String[] permissions = {
+            Manifest.permission.RECORD_AUDIO
+        };
+
+        if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(permissions, 1);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 1) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(this, "Voice input enabled", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "Voice input permission denied", Toast.LENGTH_SHORT).show();
+                micButton.setEnabled(false);
+            }
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (voiceManager != null) {
+            voiceManager.destroy();
+        }
+    }
+
+    public void updateVoiceAmplitude(float amplitude) {
+        if (voiceInputView != null) {
+            voiceInputView.updateWithAmplitude(amplitude);
         }
     }
 }

@@ -60,10 +60,26 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:hint="Type your message... (Press Enter twice to send)"
+            android:hint="Type or speak your message..."
             android:imeOptions="actionSend"
             android:inputType="textMultiLine"
             android:maxLines="4" />
+
+        <com.example.speechapp.VoiceInputView
+            android:id="@+id/voiceInputView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:visibility="gone" />
+
+        <ImageButton
+            android:id="@+id/micButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Voice input"
+            android:src="@android:drawable/ic_btn_speak_now" />
 
         <ImageButton
             android:id="@+id/sendButton"
