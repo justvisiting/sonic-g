@@ -55,9 +55,9 @@ public class GeminiAPI {
         return prefs.getString(API_KEY_PREF, "");
     }
 
-    public void startNewQuiz() {
+    public void startNewQuiz(GeminiCallback callback) {
         conversationHistory = new StringBuilder();
-        generateResponse("start quiz", null);
+        generateResponse("start quiz", callback);
     }
 
     public void generateResponse(String prompt, GeminiCallback callback) {

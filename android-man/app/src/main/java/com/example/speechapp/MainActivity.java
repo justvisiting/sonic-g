@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.speech.RecognizerIntent;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
@@ -135,10 +137,40 @@ public class MainActivity extends AppCompatActivity {
 
         // Set up start quiz button
         startQuizButton.setOnClickListener(v -> {
+            Log.d("MainActivity", "Starting quiz");
             quizMode = true;
             messages.clear();
             chatAdapter.notifyDataSetChanged();
-            geminiAPI.startNewQuiz();
+            
+            // Start new quiz with Gemini
+            geminiAPI.startNewQuiz(new GeminiAPI.GeminiCallback() {
+                @Override
+                public void onResponse(String response) {
+                    Log.d("MainActivity", "Got initial quiz response");
+                    runOnUiThread(() -> {
+                        // Convert bot response to Hindi
+                        String botHindiText = transliterateToHindi(response);
+                        addBotMessage(botHindiText, response);
+                        
+                        // Speak the response
+                        Bundle params = new Bundle();
+                        params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "quizStart");
+                        Log.d("MainActivity", "Starting TTS for quiz start");
+                        int result = textToSpeech.speak(response, TextToSpeech.QUEUE_FLUSH, params, "quizStart");
+                        if (result == TextToSpeech.ERROR) {
+                            Log.e("MainActivity", "Error starting TTS");
+                        }
+                    });
+                }
+
+                @Override
+                public void onError(String error) {
+                    Log.e("MainActivity", "Quiz start error: " + error);
+                    runOnUiThread(() -> {
+                        Toast.makeText(MainActivity.this, error, Toast.LENGTH_SHORT).show();
+                    });
+                }
+            });
         });
 
         // Check if API key is set
@@ -178,6 +210,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void processUserInput(String spokenText) {
+        Log.d("MainActivity", "Processing user input: " + spokenText);
         // Convert to Hindi and add to chat
         String hindiText = transliterateToHindi(spokenText);
         addUserMessage(hindiText, spokenText);
@@ -186,21 +219,28 @@ public class MainActivity extends AppCompatActivity {
         geminiAPI.generateResponse(spokenText, new GeminiAPI.GeminiCallback() {
             @Override
             public void onResponse(String response) {
+                Log.d("MainActivity", "Got Gemini response");
                 runOnUiThread(() -> {
                     // Convert bot response to Hindi
                     String botHindiText = transliterateToHindi(response);
                     addBotMessage(botHindiText, response);
                     
                     // Speak the response
-                    textToSpeech.speak(response, TextToSpeech.QUEUE_FLUSH, null, null);
+                    Bundle params = new Bundle();
+                    params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "messageId");
+                    Log.d("MainActivity", "Starting TTS for response");
+                    int result = textToSpeech.speak(response, TextToSpeech.QUEUE_FLUSH, params, "messageId");
+                    if (result == TextToSpeech.ERROR) {
+                        Log.e("MainActivity", "Error starting TTS");
+                    }
                 });
             }
 
             @Override
             public void onError(String error) {
+                Log.e("MainActivity", "Gemini response error: " + error);
                 runOnUiThread(() -> {
-                    Toast.makeText(MainActivity.this, error, Toast.LENGTH_LONG).show();
-                    Log.e("MainActivity", "Gemini API error: " + error);
+                    Toast.makeText(MainActivity.this, error, Toast.LENGTH_SHORT).show();
                 });
             }
         });
@@ -413,53 +453,50 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initializeTextToSpeech() {
-        if (textToSpeech != null) {
-            textToSpeech.stop();
-            textToSpeech.shutdown();
-        }
-
         textToSpeech = new TextToSpeech(this, status -> {
             if (status == TextToSpeech.SUCCESS) {
-                // Get saved language preference
+                // Set up TTS with current language
                 SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-                String savedLanguage = prefs.getString(LANGUAGE_PREF, "Hindi (India)");
-                Locale locale = languageMap.get(savedLanguage);
-                
+                String languageKey = prefs.getString(LANGUAGE_PREF, "English (US)");
+                Locale locale = languageMap.get(languageKey);
                 if (locale != null) {
                     int result = textToSpeech.setLanguage(locale);
                     if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                        Toast.makeText(this, "This language is not supported", Toast.LENGTH_SHORT).show();
+                        Log.e("MainActivity", "Language not supported");
                     }
                 }
-
+                
+                // Set up utterance progress listener
                 textToSpeech.setOnUtteranceProgressListener(new UtteranceProgressListener() {
                     @Override
                     public void onStart(String utteranceId) {
-                        runOnUiThread(() -> {
-                            isSpeaking = true;
-                            stopButton.setVisibility(View.VISIBLE);
-                            speakButton.setVisibility(View.GONE);
-                        });
+                        Log.d("MainActivity", "TTS Started: " + utteranceId);
                     }
 
                     @Override
                     public void onDone(String utteranceId) {
-                        runOnUiThread(() -> {
-                            isSpeaking = false;
-                            stopButton.setVisibility(View.GONE);
-                            speakButton.setVisibility(View.VISIBLE);
-                        });
+                        Log.d("MainActivity", "TTS Done: " + utteranceId);
+                        if (quizMode && (utteranceId.equals("quizStart") || utteranceId.equals("messageId"))) {
+                            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                                runOnUiThread(() -> {
+                                    Log.d("MainActivity", "Starting listening after TTS");
+                                    if (checkPermission()) {
+                                        startListening();
+                                    } else {
+                                        Log.e("MainActivity", "Missing permission for listening");
+                                    }
+                                });
+                            }, 1000);
+                        }
                     }
 
                     @Override
                     public void onError(String utteranceId) {
-                        runOnUiThread(() -> {
-                            isSpeaking = false;
-                            stopButton.setVisibility(View.GONE);
-                            speakButton.setVisibility(View.VISIBLE);
-                        });
+                        Log.e("MainActivity", "TTS Error: " + utteranceId);
                     }
                 });
+            } else {
+                Log.e("MainActivity", "TTS Initialization failed");
             }
         });
     }
