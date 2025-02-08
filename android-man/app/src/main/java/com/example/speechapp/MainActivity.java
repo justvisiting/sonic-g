@@ -48,6 +48,17 @@ public class MainActivity extends AppCompatActivity {
         listenButton = findViewById(R.id.listenButton);
         languageButton = findViewById(R.id.languageButton);
 
+        // Configure EditText for hardware keyboard
+        editText.setShowSoftInputOnFocus(true);
+        editText.setRawInputType(android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+        editText.setImeOptions(android.view.inputmethod.EditorInfo.IME_ACTION_DONE | android.view.inputmethod.EditorInfo.IME_FLAG_NO_EXTRACT_UI);
+        
+        // Disable suggestions
+        editText.setInputType(android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE | android.text.InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            editText.setImportantForAutofill(View.IMPORTANT_FOR_AUTOFILL_NO);
+        }
+
         // Initialize TTS with Indian accent
         initializeTextToSpeech();
 

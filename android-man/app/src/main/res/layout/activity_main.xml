@@ -12,12 +12,15 @@
         android:hint="Type text here..."
         style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
-        <com.google.android.material.textfield.TextInputEditText
+        <EditText
             android:id="@+id/editText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="textMultiLine"
-            android:minLines="3" />
+            android:hint="Type text here..."
+            android:padding="16dp"
+            android:minLines="3"
+            android:gravity="top|start"
+            android:background="@android:color/transparent" />
 
     </com.google.android.material.textfield.TextInputLayout>
 
