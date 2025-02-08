@@ -20,16 +20,18 @@ import okhttp3.Response;
 public class GeminiAPI {
     private static final String TAG = "GeminiAPI";
     private static final String API_KEY_PREF = "gemini_api_key";
-    private static final String QUIZ_PROMPT = 
-        "You are a friendly quiz master. Start a fun quiz about general knowledge. " +
-        "Ask one question at a time. Wait for the user's answer before proceeding to the next question. " +
-        "Give encouraging feedback for both correct and incorrect answers. After 5 questions, end the quiz with a summary of performance.\n\n";
-
+    private static final String QUIZ_PROMPT_START = "You are a friendly quiz master. ";
+    private static final String QUIZ_PROMPT_END = " Start a fun quiz about general knowledge. Ask one question at a time. " +
+            "Wait for the user's answer before proceeding to the next question. " +
+            "Give encouraging feedback for both correct and incorrect answers. " ;
+            
+    
     private final Context context;
     private final ExecutorService executor;
     private final Handler mainHandler;
     private StringBuilder conversationHistory;
     private String selectedLanguage = "english";
+    private String systemPrompt;
     private final DebugLogFragment debugLogFragment;
     private final OkHttpClient client;
 
@@ -44,10 +46,16 @@ public class GeminiAPI {
         this.mainHandler = new Handler(Looper.getMainLooper());
         this.conversationHistory = new StringBuilder();
         this.client = new OkHttpClient();
+        updateSystemPrompt();
+    }
+
+    private void updateSystemPrompt() {
+        this.systemPrompt = QUIZ_PROMPT_START + getLanguageInstruction() + QUIZ_PROMPT_END;
     }
 
     public void setLanguage(String language) {
         this.selectedLanguage = language;
+        updateSystemPrompt();
     }
 
     private String getLanguageInstruction() {
@@ -71,12 +79,7 @@ public class GeminiAPI {
 
     public void startNewQuiz(GeminiCallback callback) {
         conversationHistory = new StringBuilder();
-        String languagePrompt = getLanguageInstruction();
-        String prompt = "You are a friendly quiz master. " + languagePrompt + " " +
-                "Start a fun quiz about general knowledge. Ask one question at a time. " +
-                "Wait for the user's answer before proceeding to the next question. " +
-                "Give encouraging feedback for both correct and incorrect answers. " +
-                "After 5 questions, end the quiz with a summary of performance.";
+        updateSystemPrompt();
         generateResponse("start quiz", callback);
     }
 
@@ -97,23 +100,27 @@ public class GeminiAPI {
             try {
                 JSONObject requestBody = new JSONObject();
                 JSONArray contents = new JSONArray();
-                JSONObject content = new JSONObject();
-                JSONArray parts = new JSONArray();
 
-                // Add system prompt with language instruction
-                JSONObject systemPart = new JSONObject();
-                String systemPrompt = userInput.equals("start quiz") ? 
-                    "Start a new quiz with a friendly introduction and first question only." :
-                    QUIZ_PROMPT + getLanguageInstruction() + "\n\n" + conversationHistory.toString();
-                systemPart.put("role", "user");
-                systemPart.put("parts", new JSONArray().put(new JSONObject().put("text", systemPrompt)));
-                contents.put(systemPart);
+                // Add system prompt
+                JSONObject systemMessage = new JSONObject();
+                systemMessage.put("role", "user");
+                systemMessage.put("parts", new JSONArray().put(new JSONObject().put("text", systemPrompt)));
+                contents.put(systemMessage);
+
+                // Add conversation history if not starting a new quiz
+                if (!userInput.equals("start quiz")) {
+                    JSONObject historyMessage = new JSONObject();
+                    historyMessage.put("role", "user");
+                    String history = conversationHistory.toString().replace("User: ", "").replace("Assistant: ", "");
+                    historyMessage.put("parts", new JSONArray().put(new JSONObject().put("text", "Previous conversation:\n" + history)));
+                    contents.put(historyMessage);
+                }
 
                 // Add user input
-                JSONObject userPart = new JSONObject();
-                userPart.put("role", "user");
-                userPart.put("parts", new JSONArray().put(new JSONObject().put("text", userInput)));
-                contents.put(userPart);
+                JSONObject userMessage = new JSONObject();
+                userMessage.put("role", "user");
+                userMessage.put("parts", new JSONArray().put(new JSONObject().put("text", userInput)));
+                contents.put(userMessage);
 
                 requestBody.put("contents", contents);
                 requestBody.put("safetySettings", new JSONArray());
@@ -125,14 +132,21 @@ public class GeminiAPI {
 
                 String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=" + apiKey;
                 
-                // Log the full request details
+                // Log the request details
                 if (debugLogFragment != null) {
                     debugLogFragment.appendLog("\n=== REQUEST DETAILS ===");
                     debugLogFragment.appendLog("URL: " + url.replace(apiKey, "[API_KEY]"));
                     debugLogFragment.appendLog("System Prompt: " + systemPrompt);
+                    if (!userInput.equals("start quiz")) {
+                        debugLogFragment.appendLog("Conversation History: " + conversationHistory.toString().replace("User: ", "").replace("Assistant: ", ""));
+                    }
                     debugLogFragment.appendLog("User Input: " + userInput);
                     debugLogFragment.appendLog("Language Mode: " + selectedLanguage);
-                    debugLogFragment.appendLog("Full Request Body: " + requestBody.toString(2));
+                    try {
+                        debugLogFragment.appendLog("Full Request Body: " + requestBody.toString(2));
+                    } catch (Exception e) {
+                        debugLogFragment.appendLog("Full Request Body: " + requestBody.toString());
+                    }
                     debugLogFragment.appendLog("=== END REQUEST ===\n");
                 }
 
@@ -166,9 +180,31 @@ public class GeminiAPI {
                         .getJSONObject(0)
                         .getString("text");
 
-                    // Update conversation history
-                    conversationHistory.append("User: ").append(userInput).append("\n");
-                    conversationHistory.append("Assistant: ").append(generatedText).append("\n\n");
+                    // Log the generated text
+                    if (debugLogFragment != null) {
+                        debugLogFragment.appendLog("\n=== GENERATED TEXT ===");
+                        debugLogFragment.appendLog(generatedText);
+                        debugLogFragment.appendLog("=== END GENERATED TEXT ===\n");
+                    }
+
+                    // Update conversation history without duplicating
+                    if (!userInput.equals("start quiz")) {
+                        conversationHistory.append("User: ").append(userInput).append("\n");
+                        conversationHistory.append("Assistant: ").append(generatedText).append("\n\n");
+                    } else {
+                        // For new quiz, clear history and start fresh
+                        conversationHistory = new StringBuilder();
+                        conversationHistory.append("User: start quiz\n");
+                        conversationHistory.append("Assistant: ").append(generatedText).append("\n\n");
+                    }
+
+                    // Log the updated conversation history
+                    if (debugLogFragment != null) {
+                        debugLogFragment.appendLog("\n=== CONVERSATION HISTORY ===");
+                        debugLogFragment.appendLog(conversationHistory.toString());
+                        debugLogFragment.appendLog("=== END CONVERSATION HISTORY ===\n");
+                        debugLogFragment.appendLog("\n----------------------------------------\n");
+                    }
 
                     mainHandler.post(() -> {
                         if (callback != null) {

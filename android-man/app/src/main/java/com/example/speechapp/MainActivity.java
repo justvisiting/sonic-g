@@ -248,8 +248,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void processUserInput(String text) {
-        Log.d(TAG, "Processing user input: " + text);
-        
+        if (text.trim().isEmpty()) {
+            return;
+        }
+
         // Don't process input if quiz is paused
         if (quizMode && quizPaused) {
             String message = "Quiz is paused. Please resume the quiz to continue.";
@@ -322,14 +324,12 @@ public class MainActivity extends AppCompatActivity {
                   .replaceAll("Okay", "Ok");
     }
 
-    private void addUserMessage(String hindiText, String hinglishText) {
-        ChatMessage message = new ChatMessage(hinglishText, hindiText, hinglishText, ChatMessage.TYPE_USER);
-        chatFragment.addMessage(message);
+    private void addUserMessage(String displayText, String originalText) {
+        chatFragment.addMessage(new ChatMessage(displayText, originalText, "user", ChatMessage.TYPE_USER));
     }
 
-    private void addBotMessage(String hindiText, String hinglishText) {
-        ChatMessage message = new ChatMessage(hinglishText, hindiText, hinglishText, ChatMessage.TYPE_BOT);
-        chatFragment.addMessage(message);
+    private void addBotMessage(String displayText, String originalText) {
+        chatFragment.addMessage(new ChatMessage(displayText, originalText, "assistant", ChatMessage.TYPE_BOT));
     }
 
     public void addDebugLog(String log) {
