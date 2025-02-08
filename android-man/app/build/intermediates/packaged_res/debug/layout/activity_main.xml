@@ -15,7 +15,15 @@
             android:id="@+id/startQuizButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="🎯 Start Quiz"
+            android:text="Start Quiz"
+            android:layout_marginEnd="8dp"/>
+
+        <Button
+            android:id="@+id/stopQuizButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Stop Quiz"
+            android:visibility="gone"
             android:layout_marginEnd="8dp"/>
 
         <Button

@@ -46,6 +46,7 @@ public class MainActivity extends AppCompatActivity {
     private Button settingsButton;
     private Button stopButton;
     private Button startQuizButton;
+    private Button stopQuizButton;
     private boolean isListening = false;
     private boolean isSpeaking = false;
     private boolean quizMode = false;
@@ -86,6 +87,7 @@ public class MainActivity extends AppCompatActivity {
         settingsButton = findViewById(R.id.settingsButton);
         stopButton = findViewById(R.id.stopButton);
         startQuizButton = findViewById(R.id.startQuizButton);
+        stopQuizButton = findViewById(R.id.stopQuizButton);
         chatRecyclerView = findViewById(R.id.chatRecyclerView);
 
         // Initialize chat
@@ -142,6 +144,10 @@ public class MainActivity extends AppCompatActivity {
             messages.clear();
             chatAdapter.notifyDataSetChanged();
             
+            // Update button visibility
+            startQuizButton.setVisibility(View.GONE);
+            stopQuizButton.setVisibility(View.VISIBLE);
+            
             // Start new quiz with Gemini
             geminiAPI.startNewQuiz(new GeminiAPI.GeminiCallback() {
                 @Override
@@ -168,9 +174,32 @@ public class MainActivity extends AppCompatActivity {
                     Log.e("MainActivity", "Quiz start error: " + error);
                     runOnUiThread(() -> {
                         Toast.makeText(MainActivity.this, error, Toast.LENGTH_SHORT).show();
+                        // Reset buttons if there's an error
+                        startQuizButton.setVisibility(View.VISIBLE);
+                        stopQuizButton.setVisibility(View.GONE);
                     });
                 }
             });
+        });
+
+        // Set up stop quiz button
+        stopQuizButton.setOnClickListener(v -> {
+            Log.d("MainActivity", "Stopping quiz");
+            quizMode = false;
+            
+            // Stop any ongoing TTS
+            if (textToSpeech != null) {
+                textToSpeech.stop();
+            }
+            
+            // Add quiz stopped message
+            String message = "Quiz stopped. Thank you for participating!";
+            String hindiMessage = transliterateToHindi(message);
+            addBotMessage(hindiMessage, message);
+            
+            // Update button visibility
+            startQuizButton.setVisibility(View.VISIBLE);
+            stopQuizButton.setVisibility(View.GONE);
         });
 
         // Check if API key is set
@@ -186,6 +215,11 @@ public class MainActivity extends AppCompatActivity {
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "en-IN");
         intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Speak now...");
+        
+        // Add extra parameters for longer input time
+        intent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS, 5000); // 5 seconds minimum
+        intent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 3000); // 3 seconds silence
+        intent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS, 3000);
         
         try {
             startActivityForResult(intent, SPEECH_REQUEST_CODE);
@@ -254,12 +288,21 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean isQuizEnding(String response) {
         String lowerResponse = response.toLowerCase();
-        return lowerResponse.contains("quiz is over") || 
-               lowerResponse.contains("quiz has ended") ||
-               lowerResponse.contains("end of quiz") ||
-               lowerResponse.contains("quiz complete") ||
-               lowerResponse.contains("quiz finished") ||
-               lowerResponse.contains("thank you for taking the quiz");
+        if (lowerResponse.contains("quiz is over") || 
+            lowerResponse.contains("quiz has ended") ||
+            lowerResponse.contains("end of quiz") ||
+            lowerResponse.contains("quiz complete") ||
+            lowerResponse.contains("quiz finished") ||
+            lowerResponse.contains("thank you for taking the quiz")) {
+            
+            // Update button visibility when quiz ends
+            runOnUiThread(() -> {
+                startQuizButton.setVisibility(View.VISIBLE);
+                stopQuizButton.setVisibility(View.GONE);
+            });
+            return true;
+        }
+        return false;
     }
 
     private void addUserMessage(String hindiText, String hinglishText) {

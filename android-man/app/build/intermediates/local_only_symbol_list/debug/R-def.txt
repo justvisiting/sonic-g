@@ -21,6 +21,7 @@ id settingsButton
 id speakButton
 id startQuizButton
 id stopButton
+id stopQuizButton
 id topButtonsLayout
 layout activity_main
 layout activity_settings

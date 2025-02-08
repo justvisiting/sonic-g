@@ -3481,6 +3481,7 @@ id staticLayout
 id staticPostLayout
 id stop
 id stopButton
+id stopQuizButton
 id stretch
 id submenuarrow
 id submit_area
