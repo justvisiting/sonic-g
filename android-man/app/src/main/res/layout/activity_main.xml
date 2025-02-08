@@ -1,43 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:padding="16dp">
-
-    <LinearLayout
-        android:id="@+id/topButtonsLayout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="end">
-
-        <Button
-            android:id="@+id/startQuizButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Start Quiz"
-            android:layout_marginEnd="8dp"/>
-
-        <Button
-            android:id="@+id/stopQuizButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Stop Quiz"
-            android:visibility="gone"
-            android:layout_marginEnd="8dp"/>
-
-        <Button
-            android:id="@+id/settingsButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="⚙️ Settings"/>
-    </LinearLayout>
+    android:layout_height="match_parent">
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/chatRecyclerView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@+id/topButtonsLayout"
         android:layout_above="@+id/bottomLayout"
         android:layout_marginTop="8dp"
         android:layout_marginBottom="8dp" />
@@ -47,63 +17,63 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:padding="16dp">
 
         <LinearLayout
+            android:id="@+id/chatInputLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
+            android:orientation="horizontal"
             android:layout_marginBottom="8dp">
 
-            <TextView
-                android:id="@+id/hindiTextView"
-                android:layout_width="match_parent"
+            <EditText
+                android:id="@+id/chatInput"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:textSize="18sp"
-                android:padding="8dp"
-                android:background="#F5F5F5"
-                android:layout_marginBottom="8dp"
-                android:hint="Hindi text..." />
+                android:layout_weight="1"
+                android:hint="Type your answer..."
+                android:padding="12dp"
+                android:background="@drawable/chat_input_background"
+                android:maxLines="4"
+                android:inputType="textMultiLine"/>
 
-            <TextView
-                android:id="@+id/hinglishTextView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textSize="18sp"
-                android:padding="8dp"
-                android:background="#F5F5F5"
-                android:layout_marginBottom="8dp"
-                android:hint="Hinglish text..." />
+            <ImageButton
+                android:id="@+id/sendButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginStart="8dp"
+                android:src="@android:drawable/ic_menu_send"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:tint="@color/accent"/>
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:gravity="center">
 
             <Button
-                android:id="@+id/listenButton"
-                android:layout_width="0dp"
+                android:id="@+id/startQuizButton"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="🎤 Listen"
+                android:text="Start Quiz"
                 android:layout_marginEnd="8dp"/>
 
             <Button
-                android:id="@+id/speakButton"
-                android:layout_width="0dp"
+                android:id="@+id/stopQuizButton"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="🔊 Speak"
+                android:text="Stop Quiz"
+                android:visibility="gone"
                 android:layout_marginEnd="8dp"/>
 
             <Button
-                android:id="@+id/stopButton"
-                android:layout_width="0dp"
+                android:id="@+id/settingsButton"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="🛑 Stop"
-                android:visibility="gone"/>
+                android:text="⚙️ Settings"/>
         </LinearLayout>
     </LinearLayout>
 

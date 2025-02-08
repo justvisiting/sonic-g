@@ -1,9 +1,9 @@
 -- Merging decision tree log ---
 manifest
-ADDED from /Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:2:1-27:12
-INJECTED from /Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:2:1-27:12
-INJECTED from /Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:2:1-27:12
-INJECTED from /Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:2:1-27:12
+ADDED from /Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:2:1-33:12
+INJECTED from /Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:2:1-33:12
+INJECTED from /Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:2:1-33:12
+INJECTED from /Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:2:1-33:12
 MERGED from [com.google.android.material:material:1.10.0] /Users/vc/.gradle/caches/8.10.2/transforms/a155f370fbf0eec95a2345a7fca8efe8/transformed/material-1.10.0/AndroidManifest.xml:17:1-24:12
 MERGED from [androidx.constraintlayout:constraintlayout:2.1.4] /Users/vc/.gradle/caches/8.10.2/transforms/7f7c86abaddda57b230705efb31c6635/transformed/constraintlayout-2.1.4/AndroidManifest.xml:2:1-11:12
 MERGED from [androidx.appcompat:appcompat-resources:1.6.1] /Users/vc/.gradle/caches/8.10.2/transforms/403e06850c5d1bf0f7666cf53944edb9/transformed/appcompat-resources-1.6.1/AndroidManifest.xml:17:1-22:12
@@ -62,9 +62,21 @@ uses-permission#android.permission.INTERNET
 ADDED from /Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:5:5-66
 	android:name
 		ADDED from /Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:5:22-64
+uses-permission#android.permission.ACCESS_NETWORK_STATE
+ADDED from /Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:6:5-78
+	android:name
+		ADDED from /Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:6:22-76
+queries
+ADDED from /Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:7:5-11:15
+intent#action:name:android.speech.RecognitionService
+ADDED from /Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:8:9-10:18
+action#android.speech.RecognitionService
+ADDED from /Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:9:13-72
+	android:name
+		ADDED from /Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:9:21-69
 application
-ADDED from /Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:7:5-26:19
-INJECTED from /Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:7:5-26:19
+ADDED from /Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:13:5-32:19
+INJECTED from /Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:13:5-32:19
 MERGED from [com.google.android.material:material:1.10.0] /Users/vc/.gradle/caches/8.10.2/transforms/a155f370fbf0eec95a2345a7fca8efe8/transformed/material-1.10.0/AndroidManifest.xml:22:5-20
 MERGED from [com.google.android.material:material:1.10.0] /Users/vc/.gradle/caches/8.10.2/transforms/a155f370fbf0eec95a2345a7fca8efe8/transformed/material-1.10.0/AndroidManifest.xml:22:5-20
 MERGED from [androidx.constraintlayout:constraintlayout:2.1.4] /Users/vc/.gradle/caches/8.10.2/transforms/7f7c86abaddda57b230705efb31c6635/transformed/constraintlayout-2.1.4/AndroidManifest.xml:9:5-20
@@ -86,41 +98,41 @@ MERGED from [androidx.startup:startup-runtime:1.1.1] /Users/vc/.gradle/caches/8.
 	android:appComponentFactory
 		ADDED from [androidx.core:core:1.9.0] /Users/vc/.gradle/caches/8.10.2/transforms/9d1d223da40b4d4b2381736cc5c30bb5/transformed/core-1.9.0/AndroidManifest.xml:28:18-86
 	android:supportsRtl
-		ADDED from /Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:12:9-35
+		ADDED from /Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:18:9-35
 	android:label
-		ADDED from /Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:10:9-41
+		ADDED from /Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:16:9-41
 	android:roundIcon
-		ADDED from /Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:11:9-54
+		ADDED from /Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:17:9-54
 	android:icon
-		ADDED from /Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:9:9-43
+		ADDED from /Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:15:9-43
 	android:allowBackup
-		ADDED from /Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:8:9-35
+		ADDED from /Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:14:9-35
 	android:theme
-		ADDED from /Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:13:9-47
+		ADDED from /Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:19:9-47
 activity#com.example.speechapp.MainActivity
-ADDED from /Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:14:9-21:20
+ADDED from /Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:20:9-27:20
 	android:exported
-		ADDED from /Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:16:13-36
+		ADDED from /Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:22:13-36
 	android:name
-		ADDED from /Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:15:13-41
+		ADDED from /Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:21:13-41
 intent-filter#action:name:android.intent.action.MAIN+category:name:android.intent.category.LAUNCHER
-ADDED from /Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:17:13-20:29
+ADDED from /Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:23:13-26:29
 action#android.intent.action.MAIN
-ADDED from /Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:18:17-69
+ADDED from /Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:24:17-69
 	android:name
-		ADDED from /Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:18:25-66
+		ADDED from /Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:24:25-66
 category#android.intent.category.LAUNCHER
-ADDED from /Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:19:17-77
+ADDED from /Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:25:17-77
 	android:name
-		ADDED from /Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:19:27-74
+		ADDED from /Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:25:27-74
 activity#com.example.speechapp.SettingsActivity
-ADDED from /Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:22:9-25:58
+ADDED from /Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:28:9-31:58
 	android:parentActivityName
-		ADDED from /Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:25:13-55
+		ADDED from /Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:31:13-55
 	android:label
-		ADDED from /Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:24:13-37
+		ADDED from /Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:30:13-37
 	android:name
-		ADDED from /Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:23:13-45
+		ADDED from /Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:29:13-45
 uses-sdk
 INJECTED from /Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml reason: use-sdk injection requested
 INJECTED from /Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml

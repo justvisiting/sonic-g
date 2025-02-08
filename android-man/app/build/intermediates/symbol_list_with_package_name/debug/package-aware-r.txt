@@ -2951,6 +2951,8 @@ drawable btn_radio_off_mtrl
 drawable btn_radio_off_to_on_mtrl_animation
 drawable btn_radio_on_mtrl
 drawable btn_radio_on_to_off_mtrl_animation
+drawable chat_bubble_background
+drawable chat_input_background
 drawable design_fab_background
 drawable design_ic_visibility
 drawable design_ic_visibility_off
@@ -2990,6 +2992,7 @@ drawable material_ic_keyboard_arrow_previous_black_24dp
 drawable material_ic_keyboard_arrow_right_black_24dp
 drawable material_ic_menu_arrow_down_black_24dp
 drawable material_ic_menu_arrow_up_black_24dp
+drawable mic_background
 drawable mtrl_bottomsheet_drag_handle
 drawable mtrl_checkbox_button
 drawable mtrl_checkbox_button_checked_unchecked
@@ -3156,6 +3159,8 @@ id center_vertical
 id chain
 id chain2
 id chains
+id chatInput
+id chatInputLayout
 id chatRecyclerView
 id checkbox
 id checked
@@ -3289,7 +3294,6 @@ id line3
 id linear
 id listMode
 id list_item
-id listenButton
 id m3_side_sheet
 id marquee
 id masked
@@ -3319,6 +3323,7 @@ id matrix
 id message
 id messageHindiText
 id messageHinglishText
+id micImage
 id middle
 id mini
 id month_grid
@@ -3443,6 +3448,7 @@ id search_voice_btn
 id select_dialog_listview
 id selected
 id selection_type
+id sendButton
 id settingsButton
 id sharedValueSet
 id sharedValueUnset
@@ -3460,7 +3466,6 @@ id snap
 id snapMargins
 id south
 id spacer
-id speakButton
 id special_effects_controller_view_tag
 id spline
 id split_action_bar
@@ -3479,8 +3484,8 @@ id startToEnd
 id startVertical
 id staticLayout
 id staticPostLayout
+id statusText
 id stop
-id stopButton
 id stopQuizButton
 id stretch
 id submenuarrow
@@ -3522,7 +3527,6 @@ id titleDividerNoCustom
 id title_template
 id toggle
 id top
-id topButtonsLayout
 id topPanel
 id touch_outside
 id transitionToEnd
@@ -3547,6 +3551,7 @@ id view_tree_saved_state_registry_owner
 id view_tree_view_model_store_owner
 id visible
 id visible_removing_fragment_view_tag
+id volumeBar
 id west
 id withText
 id with_icon
@@ -3672,6 +3677,7 @@ layout abc_select_dialog_material
 layout abc_tooltip
 layout activity_main
 layout activity_settings
+layout chat_item
 layout custom_dialog
 layout design_bottom_navigation_item
 layout design_bottom_sheet_dialog
@@ -3709,6 +3715,7 @@ layout material_time_input
 layout material_timepicker
 layout material_timepicker_dialog
 layout material_timepicker_textinput_display
+layout mic_dialog
 layout mtrl_alert_dialog
 layout mtrl_alert_dialog_actions
 layout mtrl_alert_dialog_title
