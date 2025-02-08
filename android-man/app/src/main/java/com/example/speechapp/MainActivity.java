@@ -269,67 +269,131 @@ public class MainActivity extends AppCompatActivity {
     // Helper method to transliterate English (romanized) text to Hindi
     private String transliterateToHindi(String englishText) {
         Map<String, String> reverseTranslitMap = new HashMap<>();
-        // Basic vowels
-        reverseTranslitMap.put("a", "अ"); reverseTranslitMap.put("aa", "आ");
-        reverseTranslitMap.put("i", "इ"); reverseTranslitMap.put("ee", "ई");
-        reverseTranslitMap.put("u", "उ"); reverseTranslitMap.put("oo", "ऊ");
-        reverseTranslitMap.put("e", "ए"); reverseTranslitMap.put("ai", "ऐ");
-        reverseTranslitMap.put("o", "ओ"); reverseTranslitMap.put("au", "औ");
         
-        // Consonants with inherent 'a'
-        reverseTranslitMap.put("ka", "क"); reverseTranslitMap.put("kha", "ख");
-        reverseTranslitMap.put("ga", "ग"); reverseTranslitMap.put("gha", "घ");
-        reverseTranslitMap.put("cha", "च"); reverseTranslitMap.put("chha", "छ");
-        reverseTranslitMap.put("ja", "ज"); reverseTranslitMap.put("jha", "झ");
-        reverseTranslitMap.put("ta", "त"); reverseTranslitMap.put("tha", "थ");
-        reverseTranslitMap.put("da", "द"); reverseTranslitMap.put("dha", "ध");
-        reverseTranslitMap.put("na", "न"); reverseTranslitMap.put("pa", "प");
-        reverseTranslitMap.put("pha", "फ"); reverseTranslitMap.put("ba", "ब");
-        reverseTranslitMap.put("bha", "भ"); reverseTranslitMap.put("ma", "म");
-        reverseTranslitMap.put("ya", "य"); reverseTranslitMap.put("ra", "र");
-        reverseTranslitMap.put("la", "ल"); reverseTranslitMap.put("va", "व");
-        reverseTranslitMap.put("sha", "श"); reverseTranslitMap.put("sa", "स");
-        reverseTranslitMap.put("ha", "ह"); 
+        // Vowels and Matras
+        reverseTranslitMap.put("a", "अ"); 
+        reverseTranslitMap.put("aa", "आ"); reverseTranslitMap.put("ā", "आ");
+        reverseTranslitMap.put("i", "इ"); 
+        reverseTranslitMap.put("ee", "ई"); reverseTranslitMap.put("ī", "ई");
+        reverseTranslitMap.put("u", "उ"); 
+        reverseTranslitMap.put("oo", "ऊ"); reverseTranslitMap.put("ū", "ऊ");
+        reverseTranslitMap.put("ri", "ऋ");
+        reverseTranslitMap.put("e", "ए"); 
+        reverseTranslitMap.put("ai", "ऐ");
+        reverseTranslitMap.put("o", "ओ"); 
+        reverseTranslitMap.put("au", "औ");
+        reverseTranslitMap.put("am", "ं"); reverseTranslitMap.put("an", "ं");
+        
+        // Consonants
+        reverseTranslitMap.put("k", "क्"); reverseTranslitMap.put("ka", "क");
+        reverseTranslitMap.put("kh", "ख्"); reverseTranslitMap.put("kha", "ख");
+        reverseTranslitMap.put("g", "ग्"); reverseTranslitMap.put("ga", "ग");
+        reverseTranslitMap.put("gh", "घ्"); reverseTranslitMap.put("gha", "घ");
+        reverseTranslitMap.put("ng", "ङ्"); reverseTranslitMap.put("nga", "ङ");
+        
+        reverseTranslitMap.put("ch", "च्"); reverseTranslitMap.put("cha", "च");
+        reverseTranslitMap.put("chh", "छ्"); reverseTranslitMap.put("chha", "छ");
+        reverseTranslitMap.put("j", "ज्"); reverseTranslitMap.put("ja", "ज");
+        reverseTranslitMap.put("jh", "झ्"); reverseTranslitMap.put("jha", "झ");
+        reverseTranslitMap.put("ny", "ञ्"); reverseTranslitMap.put("nya", "ञ");
+        
+        reverseTranslitMap.put("t", "त्"); reverseTranslitMap.put("ta", "त");
+        reverseTranslitMap.put("th", "थ्"); reverseTranslitMap.put("tha", "थ");
+        reverseTranslitMap.put("d", "द्"); reverseTranslitMap.put("da", "द");
+        reverseTranslitMap.put("dh", "ध्"); reverseTranslitMap.put("dha", "ध");
+        reverseTranslitMap.put("n", "न्"); reverseTranslitMap.put("na", "न");
+        
+        reverseTranslitMap.put("p", "प्"); reverseTranslitMap.put("pa", "प");
+        reverseTranslitMap.put("ph", "फ्"); reverseTranslitMap.put("pha", "फ");
+        reverseTranslitMap.put("f", "फ्"); reverseTranslitMap.put("fa", "फ");
+        reverseTranslitMap.put("b", "ब्"); reverseTranslitMap.put("ba", "ब");
+        reverseTranslitMap.put("bh", "भ्"); reverseTranslitMap.put("bha", "भ");
+        reverseTranslitMap.put("m", "म्"); reverseTranslitMap.put("ma", "म");
+        
+        reverseTranslitMap.put("y", "य्"); reverseTranslitMap.put("ya", "य");
+        reverseTranslitMap.put("r", "र्"); reverseTranslitMap.put("ra", "र");
+        reverseTranslitMap.put("l", "ल्"); reverseTranslitMap.put("la", "ल");
+        reverseTranslitMap.put("v", "व्"); reverseTranslitMap.put("va", "व");
+        reverseTranslitMap.put("w", "व्"); reverseTranslitMap.put("wa", "व");
+        
+        reverseTranslitMap.put("sh", "श्"); reverseTranslitMap.put("sha", "श");
+        reverseTranslitMap.put("s", "स्"); reverseTranslitMap.put("sa", "स");
+        reverseTranslitMap.put("h", "ह्"); reverseTranslitMap.put("ha", "ह");
+        
+        // Matras (vowel marks)
+        Map<String, String> matras = new HashMap<>();
+        matras.put("a", ""); // No matra for 'a'
+        matras.put("aa", "ा"); matras.put("ā", "ा");
+        matras.put("i", "ि"); 
+        matras.put("ee", "ी"); matras.put("ī", "ी");
+        matras.put("u", "ु"); 
+        matras.put("oo", "ू"); matras.put("ū", "ू");
+        matras.put("ri", "ृ");
+        matras.put("e", "े"); 
+        matras.put("ai", "ै");
+        matras.put("o", "ो"); 
+        matras.put("au", "ौ");
         
         // Common words
-        reverseTranslitMap.put("main", "मैं");
-        reverseTranslitMap.put("hai", "है");
-        reverseTranslitMap.put("hoon", "हूं");
-        reverseTranslitMap.put("kya", "क्या");
-        reverseTranslitMap.put("aap", "आप");
-        reverseTranslitMap.put("tum", "तुम");
-        reverseTranslitMap.put("kaise", "कैसे");
-        reverseTranslitMap.put("namaste", "नमस्ते");
+        Map<String, String> commonWords = new HashMap<>();
+        commonWords.put("main", "मैं");
+        commonWords.put("mai", "मैं");
+        commonWords.put("mein", "में");
+        commonWords.put("hai", "है");
+        commonWords.put("hain", "हैं");
+        commonWords.put("he", "है");
+        commonWords.put("hoon", "हूं");
+        commonWords.put("hun", "हूं");
+        commonWords.put("ho", "हो");
+        commonWords.put("kya", "क्या");
+        commonWords.put("kaise", "कैसे");
+        commonWords.put("kaisa", "कैसा");
+        commonWords.put("aap", "आप");
+        commonWords.put("tum", "तुम");
+        commonWords.put("ap", "आप");
+        commonWords.put("namaste", "नमस्ते");
+        commonWords.put("namaskar", "नमस्कार");
+        commonWords.put("dhanyawad", "धन्यवाद");
+        commonWords.put("shukriya", "शुक्रिया");
         
-        // Simple word-by-word transliteration
+        // First try to match common words
         String[] words = englishText.toLowerCase().split("\\s+");
         StringBuilder result = new StringBuilder();
         
         for (String word : words) {
-            boolean wordTranslated = false;
-            
-            // First try to match the whole word
-            if (reverseTranslitMap.containsKey(word)) {
-                result.append(reverseTranslitMap.get(word));
-                wordTranslated = true;
+            // First check if it's a common word
+            if (commonWords.containsKey(word)) {
+                result.append(commonWords.get(word));
             } else {
-                // Try to match parts of the word
+                // Process the word character by character
                 StringBuilder currentWord = new StringBuilder();
                 int i = 0;
                 while (i < word.length()) {
-                    boolean matchFound = false;
-                    // Try to match longer sequences first
-                    for (int len = Math.min(4, word.length() - i); len > 0; len--) {
+                    boolean found = false;
+                    // Try to match longer sequences first (up to 4 characters)
+                    for (int len = Math.min(4, word.length() - i); len > 0 && !found; len--) {
                         String part = word.substring(i, i + len);
+                        // Check for consonant + vowel combinations
                         if (reverseTranslitMap.containsKey(part)) {
-                            currentWord.append(reverseTranslitMap.get(part));
+                            if (currentWord.length() > 0 && part.startsWith("a")) {
+                                // If we have a consonant and the next part starts with 'a',
+                                // we don't need to add anything (implicit 'a' sound)
+                                i += 1;
+                            } else {
+                                currentWord.append(reverseTranslitMap.get(part));
+                                i += len;
+                            }
+                            found = true;
+                        }
+                        // Check for matras (vowel marks)
+                        else if (currentWord.length() > 0 && matras.containsKey(part)) {
+                            currentWord.append(matras.get(part));
                             i += len;
-                            matchFound = true;
-                            break;
+                            found = true;
                         }
                     }
-                    if (!matchFound) {
-                        // If no match found, keep the original character
+                    if (!found) {
+                        // If no match found, just keep the character
                         currentWord.append(word.charAt(i));
                         i++;
                     }
@@ -339,7 +403,16 @@ public class MainActivity extends AppCompatActivity {
             result.append(" ");
         }
         
-        return result.toString().trim();
+        // Clean up the text by handling half letters correctly
+        String finalText = result.toString().trim()
+            .replace("्ा", "ा")
+            .replace("्े", "े")
+            .replace("्ै", "ै")
+            .replace("्ो", "ो")
+            .replace("्ौ", "ौ")
+            .replace("्ं", "ं");
+            
+        return finalText;
     }
 
     @Override
