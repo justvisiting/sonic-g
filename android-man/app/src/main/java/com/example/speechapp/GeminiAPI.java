@@ -103,7 +103,7 @@ public class GeminiAPI {
                 boolean debugMode = prefs.getBoolean(DEBUG_MODE_PREF, false);
                 
                 if (debugMode) {
-                    String debugRequest = "Request:\n" + requestBody;
+                    String debugRequest = "REQUEST:\n" + prompt;
                     ((MainActivity) context).runOnUiThread(() -> {
                         ((MainActivity) context).addDebugLog(debugRequest);
                     });
@@ -127,7 +127,7 @@ public class GeminiAPI {
                     }
 
                     if (debugMode) {
-                        String debugResponse = "Response:\n" + responseBody;
+                        String debugResponse = "RESPONSE:\n" + responseBody;
                         ((MainActivity) context).runOnUiThread(() -> {
                             ((MainActivity) context).addDebugLog(debugResponse);
                         });
@@ -147,6 +147,10 @@ public class GeminiAPI {
                     mainHandler.post(() -> callback.onResponse(generatedText));
                 }
             } catch (Exception e) {
+                String error = "ERROR:\n" + e.getMessage();
+                ((MainActivity) context).runOnUiThread(() -> {
+                    ((MainActivity) context).addDebugLog(error);
+                });
                 Log.e(TAG, "Error: " + e.getMessage());
                 mainHandler.post(() -> callback.onError(e.getMessage()));
             }

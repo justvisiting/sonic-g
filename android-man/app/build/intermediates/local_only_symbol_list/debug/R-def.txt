@@ -17,6 +17,7 @@ id apiKeyInput
 id bottomNavigation
 id chatInput
 id chatRecyclerView
+id debugLogView
 id debugModeSwitch
 id debugRecyclerView
 id getKeyButton
@@ -44,6 +45,7 @@ layout activity_settings
 layout chat_item
 layout debug_log_item
 layout fragment_chat
+layout fragment_debug
 layout fragment_debug_log
 layout item_message_bot
 layout item_message_user

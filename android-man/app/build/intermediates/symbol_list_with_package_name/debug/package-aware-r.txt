@@ -3192,6 +3192,7 @@ id custom
 id customPanel
 id cut
 id date_picker_actions
+id debugLogView
 id debugModeSwitch
 id debugRecyclerView
 id decelerate
@@ -3707,6 +3708,7 @@ layout design_navigation_menu_item
 layout design_text_input_end_icon
 layout design_text_input_start_icon
 layout fragment_chat
+layout fragment_debug
 layout fragment_debug_log
 layout item_message_bot
 layout item_message_user
