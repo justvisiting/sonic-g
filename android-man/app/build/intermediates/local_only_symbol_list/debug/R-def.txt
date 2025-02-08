@@ -19,7 +19,9 @@ id messageHinglishText
 id saveButton
 id settingsButton
 id speakButton
+id startQuizButton
 id stopButton
+id topButtonsLayout
 layout activity_main
 layout activity_settings
 layout item_message_bot

@@ -4,18 +4,32 @@
     android:layout_height="match_parent"
     android:padding="16dp">
 
-    <Button
-        android:id="@+id/settingsButton"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:id="@+id/topButtonsLayout"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:text="⚙️ Settings"/>
+        android:orientation="horizontal"
+        android:gravity="end">
+
+        <Button
+            android:id="@+id/startQuizButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🎯 Start Quiz"
+            android:layout_marginEnd="8dp"/>
+
+        <Button
+            android:id="@+id/settingsButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="⚙️ Settings"/>
+    </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/chatRecyclerView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@+id/settingsButton"
+        android:layout_below="@+id/topButtonsLayout"
         android:layout_above="@+id/bottomLayout"
         android:layout_marginTop="8dp"
         android:layout_marginBottom="8dp" />

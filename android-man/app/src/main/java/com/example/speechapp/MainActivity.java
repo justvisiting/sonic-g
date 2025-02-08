@@ -23,6 +23,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -42,8 +43,10 @@ public class MainActivity extends AppCompatActivity {
     private Button listenButton;
     private Button settingsButton;
     private Button stopButton;
+    private Button startQuizButton;
     private boolean isListening = false;
     private boolean isSpeaking = false;
+    private boolean quizMode = false;
     private RecyclerView chatRecyclerView;
     private ChatAdapter chatAdapter;
     private List<ChatMessage> messages;
@@ -56,7 +59,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         // Initialize language map
-        languageMap = new HashMap<>();
+        languageMap = new LinkedHashMap<>();
         languageMap.put("Hindi (India)", new Locale("hi", "IN"));
         languageMap.put("English (US)", new Locale("en", "US"));
         languageMap.put("English (UK)", new Locale("en", "GB"));
@@ -80,6 +83,7 @@ public class MainActivity extends AppCompatActivity {
         listenButton = findViewById(R.id.listenButton);
         settingsButton = findViewById(R.id.settingsButton);
         stopButton = findViewById(R.id.stopButton);
+        startQuizButton = findViewById(R.id.startQuizButton);
         chatRecyclerView = findViewById(R.id.chatRecyclerView);
 
         // Initialize chat
@@ -129,11 +133,20 @@ public class MainActivity extends AppCompatActivity {
             startActivityForResult(intent, SETTINGS_REQUEST_CODE);
         });
 
+        // Set up start quiz button
+        startQuizButton.setOnClickListener(v -> {
+            quizMode = true;
+            messages.clear();
+            chatAdapter.notifyDataSetChanged();
+            geminiAPI.startNewQuiz();
+        });
+
         // Check if API key is set
         checkApiKey();
 
         // Add welcome message
-        addBotMessage("नमस्ते! मैं आपकी कैसे मदद कर सकता हूं?", "Namaste! Main aapki kaise madad kar sakta hoon?");
+        addBotMessage("नमस्ते! मैं आपकी कैसे मदद कर सकता हूं? क्विज़ शुरू करने के लिए 'Start Quiz' बटन दबाएं।", 
+                     "Namaste! Main aapki kaise madad kar sakta hoon? Quiz shuru karne ke liye 'Start Quiz' button dabayen.");
     }
 
     private void startListening() {

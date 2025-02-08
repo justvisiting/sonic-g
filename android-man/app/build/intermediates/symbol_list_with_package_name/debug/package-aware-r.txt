@@ -3474,6 +3474,7 @@ id src_over
 id standard
 id start
 id startHorizontal
+id startQuizButton
 id startToEnd
 id startVertical
 id staticLayout
@@ -3520,6 +3521,7 @@ id titleDividerNoCustom
 id title_template
 id toggle
 id top
+id topButtonsLayout
 id topPanel
 id touch_outside
 id transitionToEnd
