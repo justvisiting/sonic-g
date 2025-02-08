@@ -4,10 +4,25 @@
     android:layout_height="match_parent"
     android:padding="16dp">
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="end"
+        android:layout_alignParentTop="true">
+
+        <Button
+            android:id="@+id/settingsButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="⚙️ Settings"/>
+    </LinearLayout>
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/chatRecyclerView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_below="@+id/settingsButton"
         android:layout_above="@+id/bottomLayout"
         android:layout_marginBottom="8dp" />
 
@@ -56,21 +71,29 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal">
 
-            <com.google.android.material.button.MaterialButton
+            <Button
                 android:id="@+id/listenButton"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="🎤 Listen"
-                android:layout_marginEnd="4dp" />
+                android:layout_marginEnd="8dp"/>
 
-            <com.google.android.material.button.MaterialButton
+            <Button
                 android:id="@+id/speakButton"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="🔊 Speak"
-                android:layout_marginStart="4dp" />
+                android:layout_marginEnd="8dp"/>
+
+            <Button
+                android:id="@+id/stopButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="🛑 Stop"
+                android:visibility="gone"/>
         </LinearLayout>
     </LinearLayout>
 

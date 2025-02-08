@@ -3,16 +3,20 @@ package com.example.speechapp;
 import android.Manifest;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.speech.RecognizerIntent;
 import android.speech.tts.TextToSpeech;
+import android.speech.tts.UtteranceProgressListener;
 import android.util.Log;
+import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -26,12 +30,19 @@ import java.util.Map;
 public class MainActivity extends AppCompatActivity {
     private static final int PERMISSION_REQUEST_CODE = 123;
     private static final int SPEECH_REQUEST_CODE = 124;
+    private static final int SETTINGS_REQUEST_CODE = 125;
+    private static final String PREFS_NAME = "SpeechAppPrefs";
+    private static final String API_KEY_PREF = "gemini_api_key";
+    
     private TextToSpeech textToSpeech;
     private TextView hindiTextView;
     private TextView hinglishTextView;
     private Button speakButton;
     private Button listenButton;
+    private Button settingsButton;
+    private Button stopButton;
     private boolean isListening = false;
+    private boolean isSpeaking = false;
     private RecyclerView chatRecyclerView;
     private ChatAdapter chatAdapter;
     private List<ChatMessage> messages;
@@ -47,6 +58,8 @@ public class MainActivity extends AppCompatActivity {
         hinglishTextView = findViewById(R.id.hinglishTextView);
         speakButton = findViewById(R.id.speakButton);
         listenButton = findViewById(R.id.listenButton);
+        settingsButton = findViewById(R.id.settingsButton);
+        stopButton = findViewById(R.id.stopButton);
         chatRecyclerView = findViewById(R.id.chatRecyclerView);
 
         // Initialize chat
@@ -56,12 +69,40 @@ public class MainActivity extends AppCompatActivity {
         chatRecyclerView.setAdapter(chatAdapter);
 
         // Initialize Gemini API
-        geminiAPI = new GeminiAPI();
+        geminiAPI = new GeminiAPI(this);
 
         // Initialize Text to Speech
         textToSpeech = new TextToSpeech(this, status -> {
             if (status == TextToSpeech.SUCCESS) {
                 textToSpeech.setLanguage(new Locale("hi", "IN"));
+                textToSpeech.setOnUtteranceProgressListener(new UtteranceProgressListener() {
+                    @Override
+                    public void onStart(String utteranceId) {
+                        runOnUiThread(() -> {
+                            isSpeaking = true;
+                            stopButton.setVisibility(View.VISIBLE);
+                            speakButton.setVisibility(View.GONE);
+                        });
+                    }
+
+                    @Override
+                    public void onDone(String utteranceId) {
+                        runOnUiThread(() -> {
+                            isSpeaking = false;
+                            stopButton.setVisibility(View.GONE);
+                            speakButton.setVisibility(View.VISIBLE);
+                        });
+                    }
+
+                    @Override
+                    public void onError(String utteranceId) {
+                        runOnUiThread(() -> {
+                            isSpeaking = false;
+                            stopButton.setVisibility(View.GONE);
+                            speakButton.setVisibility(View.VISIBLE);
+                        });
+                    }
+                });
             }
         });
 
@@ -78,9 +119,30 @@ public class MainActivity extends AppCompatActivity {
         speakButton.setOnClickListener(v -> {
             String text = hinglishTextView.getText().toString();
             if (!text.isEmpty()) {
-                textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null, null);
+                Bundle params = new Bundle();
+                params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "messageId");
+                textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, params, "messageId");
             }
         });
+
+        // Set up stop button
+        stopButton.setOnClickListener(v -> {
+            if (isSpeaking) {
+                textToSpeech.stop();
+                isSpeaking = false;
+                stopButton.setVisibility(View.GONE);
+                speakButton.setVisibility(View.VISIBLE);
+            }
+        });
+
+        // Set up settings button
+        settingsButton.setOnClickListener(v -> {
+            Intent intent = new Intent(this, SettingsActivity.class);
+            startActivityForResult(intent, SETTINGS_REQUEST_CODE);
+        });
+
+        // Check if API key is set
+        checkApiKey();
 
         // Add welcome message
         addBotMessage("नमस्ते! मैं आपकी कैसे मदद कर सकता हूं?", "Namaste! Main aapki kaise madad kar sakta hoon?");
@@ -108,6 +170,8 @@ public class MainActivity extends AppCompatActivity {
                 String spokenText = results.get(0);
                 processUserInput(spokenText);
             }
+        } else if (requestCode == SETTINGS_REQUEST_CODE) {
+            checkApiKey();
         }
     }
 
@@ -120,17 +184,22 @@ public class MainActivity extends AppCompatActivity {
         geminiAPI.generateResponse(spokenText, new GeminiAPI.GeminiCallback() {
             @Override
             public void onResponse(String response) {
-                // Convert bot response to Hindi
-                String botHindiText = transliterateToHindi(response);
-                addBotMessage(botHindiText, response);
-                
-                // Speak the response
-                textToSpeech.speak(response, TextToSpeech.QUEUE_FLUSH, null, null);
+                runOnUiThread(() -> {
+                    // Convert bot response to Hindi
+                    String botHindiText = transliterateToHindi(response);
+                    addBotMessage(botHindiText, response);
+                    
+                    // Speak the response
+                    textToSpeech.speak(response, TextToSpeech.QUEUE_FLUSH, null, null);
+                });
             }
 
             @Override
             public void onError(String error) {
-                Toast.makeText(MainActivity.this, "Error: " + error, Toast.LENGTH_SHORT).show();
+                runOnUiThread(() -> {
+                    Toast.makeText(MainActivity.this, error, Toast.LENGTH_LONG).show();
+                    Log.e("MainActivity", "Gemini API error: " + error);
+                });
             }
         });
     }
@@ -138,7 +207,8 @@ public class MainActivity extends AppCompatActivity {
     private void addUserMessage(String hindiText, String hinglishText) {
         ChatMessage message = new ChatMessage(hinglishText, hindiText, hinglishText, ChatMessage.TYPE_USER);
         runOnUiThread(() -> {
-            chatAdapter.addMessage(message);
+            messages.add(message);
+            chatAdapter.notifyItemInserted(messages.size() - 1);
             chatRecyclerView.smoothScrollToPosition(messages.size() - 1);
             hindiTextView.setText(hindiText);
             hinglishTextView.setText(hinglishText);
@@ -148,7 +218,8 @@ public class MainActivity extends AppCompatActivity {
     private void addBotMessage(String hindiText, String hinglishText) {
         ChatMessage message = new ChatMessage(hinglishText, hindiText, hinglishText, ChatMessage.TYPE_BOT);
         runOnUiThread(() -> {
-            chatAdapter.addMessage(message);
+            messages.add(message);
+            chatAdapter.notifyItemInserted(messages.size() - 1);
             chatRecyclerView.smoothScrollToPosition(messages.size() - 1);
             hindiTextView.setText(hindiText);
             hinglishTextView.setText(hinglishText);
@@ -164,6 +235,22 @@ public class MainActivity extends AppCompatActivity {
         ActivityCompat.requestPermissions(this, 
             new String[]{Manifest.permission.RECORD_AUDIO}, 
             PERMISSION_REQUEST_CODE);
+    }
+
+    private void checkApiKey() {
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        String apiKey = prefs.getString(API_KEY_PREF, "");
+        if (apiKey.isEmpty()) {
+            new AlertDialog.Builder(this)
+                .setTitle("API Key Required")
+                .setMessage("You need a Gemini API key to use this app. Would you like to set it up now?")
+                .setPositiveButton("Yes", (dialog, which) -> {
+                    Intent intent = new Intent(this, SettingsActivity.class);
+                    startActivityForResult(intent, SETTINGS_REQUEST_CODE);
+                })
+                .setNegativeButton("Later", null)
+                .show();
+        }
     }
 
     @Override

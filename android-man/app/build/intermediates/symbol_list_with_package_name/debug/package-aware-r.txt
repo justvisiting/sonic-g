@@ -3123,6 +3123,7 @@ id animateToEnd
 id animateToStart
 id antiClockwise
 id anticipate
+id apiKeyInput
 id arc
 id asConfigured
 id async
@@ -3243,6 +3244,7 @@ id forever
 id fragment_container_view_tag
 id frost
 id fullscreen_header
+id getKeyButton
 id ghost_view
 id ghost_view_holder
 id gone
@@ -3416,6 +3418,7 @@ id right_icon
 id right_side
 id rounded
 id row_index_key
+id saveButton
 id save_non_transition_alpha
 id save_overlay_view
 id sawtooth
@@ -3439,6 +3442,7 @@ id search_voice_btn
 id select_dialog_listview
 id selected
 id selection_type
+id settingsButton
 id sharedValueSet
 id sharedValueUnset
 id shortcut
@@ -3474,6 +3478,7 @@ id startVertical
 id staticLayout
 id staticPostLayout
 id stop
+id stopButton
 id stretch
 id submenuarrow
 id submit_area
@@ -3662,6 +3667,7 @@ layout abc_search_view
 layout abc_select_dialog_material
 layout abc_tooltip
 layout activity_main
+layout activity_settings
 layout custom_dialog
 layout design_bottom_navigation_item
 layout design_bottom_sheet_dialog

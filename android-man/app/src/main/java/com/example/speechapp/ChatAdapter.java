@@ -46,11 +46,6 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.MessageViewHol
         return messages.get(position).getType();
     }
 
-    public void addMessage(ChatMessage message) {
-        messages.add(message);
-        notifyItemInserted(messages.size() - 1);
-    }
-
     static class MessageViewHolder extends RecyclerView.ViewHolder {
         TextView hindiText;
         TextView hinglishText;
