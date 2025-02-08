@@ -5,6 +5,7 @@ color background
 color primary
 color primary_dark
 id editText
+id languageButton
 id listenButton
 id speakButton
 id textView

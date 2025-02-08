@@ -8,6 +8,7 @@ import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
+import android.speech.tts.Voice;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -21,6 +22,7 @@ import androidx.core.content.ContextCompat;
 
 import java.util.ArrayList;
 import java.util.Locale;
+import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
     private static final int PERMISSION_REQUEST_CODE = 123;
@@ -46,22 +48,8 @@ public class MainActivity extends AppCompatActivity {
         listenButton = findViewById(R.id.listenButton);
         languageButton = findViewById(R.id.languageButton);
 
-        // Initialize Text to Speech with Indian English
-        textToSpeech = new TextToSpeech(this, status -> {
-            if (status == TextToSpeech.SUCCESS) {
-                // Set Indian English as default
-                int result = textToSpeech.setLanguage(new Locale("en", "IN"));
-                if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                    // Fallback to US English if Indian English is not available
-                    result = textToSpeech.setLanguage(new Locale("en", "US"));
-                    if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                        Toast.makeText(MainActivity.this, "Language not supported", Toast.LENGTH_SHORT).show();
-                    }
-                }
-            } else {
-                Toast.makeText(MainActivity.this, "Text to Speech initialization failed", Toast.LENGTH_SHORT).show();
-            }
-        });
+        // Initialize TTS with Indian accent
+        initializeTextToSpeech();
 
         // Initialize Speech Recognizer
         if (SpeechRecognizer.isRecognitionAvailable(this)) {
@@ -195,6 +183,41 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    private void initializeTextToSpeech() {
+        textToSpeech = new TextToSpeech(this, status -> {
+            if (status == TextToSpeech.SUCCESS) {
+                // Try to set Indian English voice
+                int result = textToSpeech.setLanguage(new Locale("en", "IN"));
+                
+                // Set Indian voice if available
+                Set<Voice> voices = textToSpeech.getVoices();
+                if (voices != null) {
+                    for (Voice voice : voices) {
+                        Locale locale = voice.getLocale();
+                        if (locale.getCountry().equals("IN")) {
+                            textToSpeech.setVoice(voice);
+                            break;
+                        }
+                    }
+                }
+                
+                // Set speech rate and pitch for more natural Indian accent
+                textToSpeech.setSpeechRate(0.85f);  // Slightly slower
+                textToSpeech.setPitch(0.95f);       // Slightly lower pitch
+                
+                if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                    // If Indian English is not available, try Hindi
+                    result = textToSpeech.setLanguage(new Locale("hi", "IN"));
+                    if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                        Toast.makeText(MainActivity.this, "Indian language pack not installed", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            } else {
+                Toast.makeText(MainActivity.this, "Text to Speech initialization failed", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
     private void startListening() {
         Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
@@ -263,14 +286,24 @@ public class MainActivity extends AppCompatActivity {
             case 0:
                 languageButton.setText("Mode: Indian English");
                 Toast.makeText(MainActivity.this, "Switched to Indian English", Toast.LENGTH_SHORT).show();
+                if (textToSpeech != null) {
+                    textToSpeech.setLanguage(new Locale("en", "IN"));
+                }
                 break;
             case 1:
                 languageButton.setText("Mode: Hindi");
                 Toast.makeText(MainActivity.this, "Switched to Hindi", Toast.LENGTH_SHORT).show();
+                if (textToSpeech != null) {
+                    textToSpeech.setLanguage(new Locale("hi", "IN"));
+                }
                 break;
             case 2:
                 languageButton.setText("Mode: Hinglish");
                 Toast.makeText(MainActivity.this, "Switched to Hinglish", Toast.LENGTH_SHORT).show();
+                if (textToSpeech != null) {
+                    // Use Hindi for better pronunciation of mixed language
+                    textToSpeech.setLanguage(new Locale("hi", "IN"));
+                }
                 break;
         }
     }
