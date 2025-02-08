@@ -10,7 +10,6 @@ import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
-import android.speech.tts.UtteranceProgressListener;
 import android.util.Log;
 import java.util.ArrayList;
 import java.util.Locale;
@@ -18,12 +17,12 @@ import java.util.Locale;
 public class VoiceManager implements RecognitionListener {
     private static final String TAG = "VoiceManager";
     private final Context context;
-    private final SpeechRecognizer speechRecognizer;
+    private SpeechRecognizer speechRecognizer;
     private TextToSpeech textToSpeech;
     private final VoiceCallback callback;
     private boolean isListening = false;
+    private boolean isProcessing = false;
     private final Handler handler;
-    private static final int ERROR_TIMEOUT = 3000; // 3 seconds
 
     public interface VoiceCallback {
         void onSpeechResult(String text);
@@ -37,13 +36,16 @@ public class VoiceManager implements RecognitionListener {
         this.context = context;
         this.callback = callback;
         this.handler = new Handler(Looper.getMainLooper());
+        initializeSpeechRecognizer();
+        initializeTextToSpeech();
+    }
 
-        // Initialize speech recognizer
+    private void initializeSpeechRecognizer() {
+        if (speechRecognizer != null) {
+            speechRecognizer.destroy();
+        }
         speechRecognizer = SpeechRecognizer.createSpeechRecognizer(context);
         speechRecognizer.setRecognitionListener(this);
-
-        // Initialize text to speech
-        initializeTextToSpeech();
     }
 
     private void initializeTextToSpeech() {
@@ -63,45 +65,58 @@ public class VoiceManager implements RecognitionListener {
     }
 
     public void startListening() {
-        if (!isListening) return;
+        if (!isListening || isProcessing) return;
+
+        // Re-initialize speech recognizer to prevent client-side errors
+        initializeSpeechRecognizer();
         
         Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
         intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1);
         intent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, false);
+        intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, context.getPackageName());
 
         try {
-            speechRecognizer.startListening(intent);
-            callback.onListeningStarted();
-            callback.onStatusChanged(VoiceInputView.VoiceStatus.LISTENING);
-            
-            // Set a timeout for listening
-            handler.postDelayed(() -> {
-                if (isListening) {
-                    stopListening();
-                    callback.onStatusChanged(VoiceInputView.VoiceStatus.ERROR);
-                    callback.onSpeechError("Listening timeout");
+            handler.post(() -> {
+                try {
+                    speechRecognizer.startListening(intent);
+                    callback.onListeningStarted();
+                    callback.onStatusChanged(VoiceInputView.VoiceStatus.LISTENING);
+                } catch (Exception e) {
+                    handleError("Error starting speech recognition: " + e.getMessage());
                 }
-            }, ERROR_TIMEOUT);
+            });
         } catch (Exception e) {
-            callback.onSpeechError("Error starting speech recognition: " + e.getMessage());
-            callback.onStatusChanged(VoiceInputView.VoiceStatus.ERROR);
+            handleError("Error starting speech recognition: " + e.getMessage());
         }
+    }
+
+    private void handleError(String message) {
+        isProcessing = false;
+        callback.onSpeechError(message);
+        callback.onStatusChanged(VoiceInputView.VoiceStatus.ERROR);
+        stopListening();
     }
 
     public void stopListening() {
         isListening = false;
-        speechRecognizer.stopListening();
+        isProcessing = false;
+        try {
+            speechRecognizer.stopListening();
+        } catch (Exception e) {
+            Log.e(TAG, "Error stopping speech recognition", e);
+        }
         callback.onListeningStopped();
     }
 
     public void toggleListening() {
-        isListening = !isListening;
         if (isListening) {
-            startListening();
-        } else {
             stopListening();
+        } else {
+            isListening = true;
+            isProcessing = false;
+            startListening();
         }
     }
 
@@ -114,10 +129,12 @@ public class VoiceManager implements RecognitionListener {
     public void destroy() {
         if (speechRecognizer != null) {
             speechRecognizer.destroy();
+            speechRecognizer = null;
         }
         if (textToSpeech != null) {
             textToSpeech.stop();
             textToSpeech.shutdown();
+            textToSpeech = null;
         }
         handler.removeCallbacksAndMessages(null);
     }
@@ -126,11 +143,13 @@ public class VoiceManager implements RecognitionListener {
     @Override
     public void onReadyForSpeech(Bundle params) {
         Log.d(TAG, "Ready for speech");
+        isProcessing = false;
     }
 
     @Override
     public void onBeginningOfSpeech() {
         Log.d(TAG, "Beginning of speech");
+        isProcessing = false;
         callback.onStatusChanged(VoiceInputView.VoiceStatus.LISTENING);
     }
 
@@ -153,64 +172,81 @@ public class VoiceManager implements RecognitionListener {
     @Override
     public void onEndOfSpeech() {
         Log.d(TAG, "End of speech");
+        isProcessing = true;
         callback.onStatusChanged(VoiceInputView.VoiceStatus.PROCESSING);
     }
 
     @Override
     public void onError(int error) {
-        String errorMessage;
+        Log.e(TAG, "Speech recognition error: " + error);
+        isProcessing = false;
+        
+        // Only handle error if we're still in listening mode
+        if (!isListening) return;
+
+        String errorMessage = null;
+        boolean shouldRestart = true;
+
         switch (error) {
             case SpeechRecognizer.ERROR_AUDIO:
                 errorMessage = "Audio recording error";
+                shouldRestart = false;
                 break;
             case SpeechRecognizer.ERROR_CLIENT:
-                errorMessage = "Client side error";
-                break;
+                // Reinitialize and retry on client error
+                initializeSpeechRecognizer();
+                handler.postDelayed(this::startListening, 300);
+                return;
             case SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS:
                 errorMessage = "Insufficient permissions";
+                shouldRestart = false;
                 break;
             case SpeechRecognizer.ERROR_NETWORK:
                 errorMessage = "Network error";
+                shouldRestart = false;
                 break;
             case SpeechRecognizer.ERROR_NETWORK_TIMEOUT:
                 errorMessage = "Network timeout";
                 break;
             case SpeechRecognizer.ERROR_NO_MATCH:
-                errorMessage = "No recognition match";
+                shouldRestart = true;
                 break;
             case SpeechRecognizer.ERROR_RECOGNIZER_BUSY:
-                errorMessage = "Recognition service busy";
-                break;
+                // Reinitialize and retry after a longer delay
+                initializeSpeechRecognizer();
+                handler.postDelayed(this::startListening, 1000);
+                return;
             case SpeechRecognizer.ERROR_SERVER:
                 errorMessage = "Server error";
                 break;
             case SpeechRecognizer.ERROR_SPEECH_TIMEOUT:
-                errorMessage = "No speech input";
+                shouldRestart = true;
                 break;
             default:
-                errorMessage = "Unknown error";
+                errorMessage = "Recognition error";
                 break;
         }
-        callback.onSpeechError(errorMessage);
-        callback.onStatusChanged(VoiceInputView.VoiceStatus.ERROR);
-        
-        // Restart listening if still in listening mode
-        if (isListening) {
-            handler.postDelayed(this::startListening, 1000);
+
+        if (errorMessage != null) {
+            callback.onSpeechError(errorMessage);
+            callback.onStatusChanged(VoiceInputView.VoiceStatus.ERROR);
+        }
+
+        if (shouldRestart && isListening && !isProcessing) {
+            handler.postDelayed(this::startListening, 300);
         }
     }
 
     @Override
     public void onResults(Bundle results) {
+        isProcessing = false;
         ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
         if (matches != null && !matches.isEmpty()) {
             String text = matches.get(0);
             callback.onSpeechResult(text);
-        }
-
-        // Continue listening if in listening mode
-        if (isListening) {
-            handler.postDelayed(this::startListening, 1000);
+            stopListening();
+        } else if (isListening) {
+            handler.postDelayed(this::startListening, 300);
         }
     }
 
