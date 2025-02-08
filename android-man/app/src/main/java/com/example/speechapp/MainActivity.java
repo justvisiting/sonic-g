@@ -1,61 +1,47 @@
 package com.example.speechapp;
 
-import android.Manifest;
-import android.animation.AnimatorSet;
-import android.animation.ObjectAnimator;
-import android.animation.ValueAnimator;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
-import android.content.res.ColorStateList;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.speech.tts.TextToSpeech;
-import android.speech.tts.UtteranceProgressListener;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.ImageView;
-import android.widget.ProgressBar;
-import android.widget.TextView;
 import android.widget.Toast;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import androidx.appcompat.widget.Toolbar;
+import androidx.viewpager2.widget.ViewPager2;
+import com.google.android.material.tabs.TabLayout;
+import com.google.android.material.tabs.TabLayoutMediator;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
-    private static final int PERMISSION_REQUEST_CODE = 123;
+    private static final String TAG = "MainActivity";
     private static final int SETTINGS_REQUEST_CODE = 125;
     private static final String PREFS_NAME = "SpeechAppPrefs";
     private static final String API_KEY_PREF = "gemini_api_key";
-    private static final String LANGUAGE_PREF = "tts_language";
-    private TextView hindiTextView;
-    private TextView hinglishTextView;
+    private static final String DEBUG_MODE_PREF = "debug_mode";
+
     private Button startQuizButton;
     private Button stopQuizButton;
     private Button settingsButton;
     private EditText chatInput;
     private ImageButton sendButton;
     private boolean quizMode = false;
-    private RecyclerView chatRecyclerView;
-    private ChatAdapter chatAdapter;
-    private List<ChatMessage> messages;
     private GeminiAPI geminiAPI;
     private Handler mainHandler;
+
+    private TabLayout tabLayout;
+    private ViewPager2 viewPager;
+    private ChatFragment chatFragment;
+    private DebugLogFragment debugFragment;
+    private boolean isDebugMode = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,21 +49,47 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         mainHandler = new Handler(Looper.getMainLooper());
 
+        // Set up toolbar
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayShowTitleEnabled(false);
+        }
+
         // Initialize views
-        hindiTextView = findViewById(R.id.hindiTextView);
-        hinglishTextView = findViewById(R.id.hinglishTextView);
         startQuizButton = findViewById(R.id.startQuizButton);
         stopQuizButton = findViewById(R.id.stopQuizButton);
         settingsButton = findViewById(R.id.settingsButton);
-        chatRecyclerView = findViewById(R.id.chatRecyclerView);
         chatInput = findViewById(R.id.chatInput);
         sendButton = findViewById(R.id.sendButton);
+        tabLayout = findViewById(R.id.tabLayout);
+        viewPager = findViewById(R.id.viewPager);
 
-        // Initialize chat
-        messages = new ArrayList<>();
-        chatAdapter = new ChatAdapter(messages);
-        chatRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        chatRecyclerView.setAdapter(chatAdapter);
+        // Initialize fragments
+        chatFragment = new ChatFragment();
+        debugFragment = new DebugLogFragment();
+
+        // Set up ViewPager
+        ViewPagerAdapter pagerAdapter = new ViewPagerAdapter(this, chatFragment, debugFragment);
+        viewPager.setAdapter(pagerAdapter);
+
+        // Set up TabLayout
+        new TabLayoutMediator(tabLayout, viewPager,
+            (tab, position) -> tab.setText(position == 0 ? "Chat" : "Debug")
+        ).attach();
+
+        // Check debug mode
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        isDebugMode = prefs.getBoolean(DEBUG_MODE_PREF, false);
+        Log.d(TAG, "Debug mode is: " + isDebugMode);
+        
+        // Always show tabs, but only show debug tab if debug mode is enabled
+        if (!isDebugMode) {
+            viewPager.setCurrentItem(0);
+            tabLayout.getTabAt(1).view.setVisibility(View.GONE);
+        } else {
+            tabLayout.getTabAt(1).view.setVisibility(View.VISIBLE);
+        }
 
         // Initialize Gemini API
         geminiAPI = new GeminiAPI(this);
@@ -91,21 +103,9 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        chatInput.setOnEditorActionListener((v, actionId, event) -> {
-            if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_SEND) {
-                String text = chatInput.getText().toString().trim();
-                if (!text.isEmpty()) {
-                    processUserInput(text);
-                    chatInput.setText("");
-                }
-                return true;
-            }
-            return false;
-        });
-
         // Set up start quiz button
         startQuizButton.setOnClickListener(v -> {
-            Log.d("MainActivity", "Starting quiz");
+            Log.d(TAG, "Starting quiz");
             quizMode = true;
             
             // Update button visibility
@@ -116,7 +116,7 @@ public class MainActivity extends AppCompatActivity {
             geminiAPI.startNewQuiz(new GeminiAPI.GeminiCallback() {
                 @Override
                 public void onResponse(String response) {
-                    Log.d("MainActivity", "Got initial quiz response");
+                    Log.d(TAG, "Got initial quiz response");
                     runOnUiThread(() -> {
                         // Convert bot response to Hindi
                         String botHindiText = transliterateToHindi(response);
@@ -126,7 +126,7 @@ public class MainActivity extends AppCompatActivity {
 
                 @Override
                 public void onError(String error) {
-                    Log.e("MainActivity", "Quiz start error: " + error);
+                    Log.e(TAG, "Quiz start error: " + error);
                     runOnUiThread(() -> {
                         Toast.makeText(MainActivity.this, error, Toast.LENGTH_SHORT).show();
                         // Reset buttons if there's an error
@@ -139,7 +139,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Set up stop quiz button
         stopQuizButton.setOnClickListener(v -> {
-            Log.d("MainActivity", "Stopping quiz");
+            Log.d(TAG, "Stopping quiz");
             quizMode = false;
             
             // Add quiz stopped message
@@ -166,23 +166,102 @@ public class MainActivity extends AppCompatActivity {
                      "Namaste! Main aapki kaise madad kar sakta hoon? Quiz shuru karne ke liye 'Start Quiz' button dabayen.");
     }
 
-    private void checkApiKey() {
-        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        String apiKey = prefs.getString(API_KEY_PREF, "");
-        // Always show dialog if API key is empty
-        if (apiKey.isEmpty()) {
-            Intent intent = new Intent(this, SettingsActivity.class);
-            startActivityForResult(intent, SETTINGS_REQUEST_CODE);
-            Toast.makeText(this, "Please set your Gemini API key to enable chat", Toast.LENGTH_LONG).show();
-        }
-    }
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == SETTINGS_REQUEST_CODE) {
-            checkApiKey();
+        if (requestCode == SETTINGS_REQUEST_CODE && resultCode == RESULT_OK) {
+            // Check if debug mode changed
+            SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+            boolean newDebugMode = prefs.getBoolean(DEBUG_MODE_PREF, false);
+            Log.d(TAG, "Debug mode changed from " + isDebugMode + " to " + newDebugMode);
+            if (newDebugMode != isDebugMode) {
+                isDebugMode = newDebugMode;
+                if (!isDebugMode) {
+                    viewPager.setCurrentItem(0);
+                    tabLayout.getTabAt(1).view.setVisibility(View.GONE);
+                } else {
+                    tabLayout.getTabAt(1).view.setVisibility(View.VISIBLE);
+                }
+            }
         }
+    }
+
+    private void processUserInput(String text) {
+        Log.d(TAG, "Processing user input: " + text);
+        // Convert to Hindi and add to chat
+        String hindiText = transliterateToHindi(text);
+        addUserMessage(hindiText, text);
+
+        // Get response from Gemini
+        geminiAPI.generateResponse(text, new GeminiAPI.GeminiCallback() {
+            @Override
+            public void onResponse(String response) {
+                Log.d(TAG, "Got Gemini response");
+                runOnUiThread(() -> {
+                    // Check if quiz is ending
+                    if (isQuizEnding(response)) {
+                        Log.d(TAG, "Quiz is ending");
+                        quizMode = false;
+                    }
+                    
+                    // Convert bot response to Hindi
+                    String botHindiText = transliterateToHindi(response);
+                    addBotMessage(botHindiText, response);
+                });
+            }
+
+            @Override
+            public void onError(String error) {
+                Log.e(TAG, "Gemini response error: " + error);
+                runOnUiThread(() -> {
+                    Toast.makeText(MainActivity.this, error, Toast.LENGTH_SHORT).show();
+                });
+            }
+        });
+    }
+
+    private void addUserMessage(String hindiText, String hinglishText) {
+        ChatMessage message = new ChatMessage(hinglishText, hindiText, hinglishText, ChatMessage.TYPE_USER);
+        chatFragment.addMessage(message);
+    }
+
+    private void addBotMessage(String hindiText, String hinglishText) {
+        ChatMessage message = new ChatMessage(hinglishText, hindiText, hinglishText, ChatMessage.TYPE_BOT);
+        chatFragment.addMessage(message);
+    }
+
+    public void addDebugLog(String log) {
+        Log.d(TAG, "Adding debug log: " + log);
+        if (isDebugMode && debugFragment != null) {
+            runOnUiThread(() -> debugFragment.addLog(log));
+        }
+    }
+
+    private void checkApiKey() {
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        String apiKey = prefs.getString(API_KEY_PREF, "");
+        if (apiKey.isEmpty()) {
+            Toast.makeText(this, "Please set your API key in settings", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private boolean isQuizEnding(String response) {
+        String lowerResponse = response.toLowerCase();
+        if (lowerResponse.contains("quiz is over") || 
+            lowerResponse.contains("quiz has ended") ||
+            lowerResponse.contains("end of quiz") ||
+            lowerResponse.contains("quiz complete") ||
+            lowerResponse.contains("quiz finished") ||
+            lowerResponse.contains("thank you for taking the quiz")) {
+            
+            // Update button visibility when quiz ends
+            runOnUiThread(() -> {
+                startQuizButton.setVisibility(View.VISIBLE);
+                stopQuizButton.setVisibility(View.GONE);
+            });
+            return true;
+        }
+        return false;
     }
 
     private String transliterateToHindi(String englishText) {
@@ -238,7 +317,7 @@ public class MainActivity extends AppCompatActivity {
         matras.put("i", "ि");
         matras.put("ee", "ी"); matras.put("ī", "ी");
         matras.put("u", "ु");
-        matras.put("oo", "ू"); matras.put("ū", "ू");
+        matras.put("oo", "ू"); matras.put("ū", "ū");
         matras.put("ri", "ृ");
         matras.put("e", "े");
         matras.put("ai", "ै");
@@ -301,76 +380,5 @@ public class MainActivity extends AppCompatActivity {
             .replace("्ं", "ं");
             
         return finalText;
-    }
-
-    private void processUserInput(String text) {
-        Log.d("MainActivity", "Processing user input: " + text);
-        // Convert to Hindi and add to chat
-        String hindiText = transliterateToHindi(text);
-        addUserMessage(hindiText, text);
-
-        // Get response from Gemini
-        geminiAPI.generateResponse(text, new GeminiAPI.GeminiCallback() {
-            @Override
-            public void onResponse(String response) {
-                Log.d("MainActivity", "Got Gemini response");
-                runOnUiThread(() -> {
-                    // Check if quiz is ending
-                    if (isQuizEnding(response)) {
-                        Log.d("MainActivity", "Quiz is ending");
-                        quizMode = false;
-                    }
-                    
-                    // Convert bot response to Hindi
-                    String botHindiText = transliterateToHindi(response);
-                    addBotMessage(botHindiText, response);
-                });
-            }
-
-            @Override
-            public void onError(String error) {
-                Log.e("MainActivity", "Gemini response error: " + error);
-                runOnUiThread(() -> {
-                    Toast.makeText(MainActivity.this, error, Toast.LENGTH_SHORT).show();
-                });
-            }
-        });
-    }
-
-    private void addUserMessage(String hindiText, String hinglishText) {
-        ChatMessage message = new ChatMessage(hinglishText, hindiText, hinglishText, ChatMessage.TYPE_USER);
-        runOnUiThread(() -> {
-            messages.add(message);
-            chatAdapter.notifyItemInserted(messages.size() - 1);
-            chatRecyclerView.smoothScrollToPosition(messages.size() - 1);
-        });
-    }
-
-    private void addBotMessage(String hindiText, String hinglishText) {
-        ChatMessage message = new ChatMessage(hinglishText, hindiText, hinglishText, ChatMessage.TYPE_BOT);
-        runOnUiThread(() -> {
-            messages.add(message);
-            chatAdapter.notifyItemInserted(messages.size() - 1);
-            chatRecyclerView.smoothScrollToPosition(messages.size() - 1);
-        });
-    }
-
-    private boolean isQuizEnding(String response) {
-        String lowerResponse = response.toLowerCase();
-        if (lowerResponse.contains("quiz is over") || 
-            lowerResponse.contains("quiz has ended") ||
-            lowerResponse.contains("end of quiz") ||
-            lowerResponse.contains("quiz complete") ||
-            lowerResponse.contains("quiz finished") ||
-            lowerResponse.contains("thank you for taking the quiz")) {
-            
-            // Update button visibility when quiz ends
-            runOnUiThread(() -> {
-                startQuizButton.setVisibility(View.VISIBLE);
-                stopQuizButton.setVisibility(View.GONE);
-            });
-            return true;
-        }
-        return false;
     }
 }

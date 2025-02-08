@@ -17,6 +17,7 @@ public class GeminiAPI {
     private static final String API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent";
     private static final String PREFS_NAME = "SpeechAppPrefs";
     private static final String API_KEY_PREF = "gemini_api_key";
+    private static final String DEBUG_MODE_PREF = "debug_mode";
     private static final String QUIZ_PROMPT = 
         "You are a friendly quiz master. Follow these rules strictly:\n" +
         "1. Wait for user input before generating the next question\n" +
@@ -96,11 +97,21 @@ public class GeminiAPI {
                 jsonBody.put("contents", contents);
                 
                 String requestBody = jsonBody.toString(2); // Pretty print JSON
-                Log.d(TAG, "Request to Gemini API:\n" + requestBody);
+                
+                // Check if debug mode is enabled
+                SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+                boolean debugMode = prefs.getBoolean(DEBUG_MODE_PREF, false);
+                
+                if (debugMode) {
+                    String debugRequest = "Request:\n" + requestBody;
+                    ((MainActivity) context).runOnUiThread(() -> {
+                        ((MainActivity) context).addDebugLog(debugRequest);
+                    });
+                }
                 
                 RequestBody body = RequestBody.create(
                     requestBody,
-                    MediaType.parse("application/json")
+                    MediaType.parse("application/json; charset=utf-8")
                 );
 
                 Request request = new Request.Builder()
@@ -109,21 +120,20 @@ public class GeminiAPI {
                     .build();
 
                 try (Response response = client.newCall(request).execute()) {
-                    String responseData = response.body() != null ? response.body().string() : "";
-                    Log.d(TAG, "Response from Gemini API:\n" + responseData);
-
-                    if (!response.isSuccessful()) {
-                        mainHandler.post(() -> callback.onError("Error: " + response.code() + " - " + responseData));
-                        return;
-                    }
-
-                    JSONObject jsonResponse = new JSONObject(responseData);
+                    String responseBody = response.body().string();
                     
-                    if (!jsonResponse.has("candidates") || jsonResponse.getJSONArray("candidates").length() == 0) {
-                        mainHandler.post(() -> callback.onError("No response from API"));
-                        return;
+                    if (!response.isSuccessful()) {
+                        throw new IOException("Unexpected response " + response);
                     }
 
+                    if (debugMode) {
+                        String debugResponse = "Response:\n" + responseBody;
+                        ((MainActivity) context).runOnUiThread(() -> {
+                            ((MainActivity) context).addDebugLog(debugResponse);
+                        });
+                    }
+
+                    JSONObject jsonResponse = new JSONObject(responseBody);
                     String generatedText = jsonResponse
                         .getJSONArray("candidates")
                         .getJSONObject(0)
@@ -132,18 +142,13 @@ public class GeminiAPI {
                         .getJSONObject(0)
                         .getString("text");
 
-                    // Update conversation history with response
+                    // Add bot response to history
                     conversationHistory.append("Assistant: ").append(generatedText).append("\n");
-
-                    if (callback != null) {
-                        mainHandler.post(() -> callback.onResponse(generatedText.trim()));
-                    }
+                    mainHandler.post(() -> callback.onResponse(generatedText));
                 }
             } catch (Exception e) {
-                Log.e(TAG, "Error calling Gemini API", e);
-                if (callback != null) {
-                    mainHandler.post(() -> callback.onError("Error: " + e.getMessage()));
-                }
+                Log.e(TAG, "Error: " + e.getMessage());
+                mainHandler.post(() -> callback.onError(e.getMessage()));
             }
         });
     }

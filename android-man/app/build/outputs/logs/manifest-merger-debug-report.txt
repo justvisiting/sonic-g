@@ -108,7 +108,7 @@ MERGED from [androidx.startup:startup-runtime:1.1.1] /Users/vc/.gradle/caches/8.
 	android:allowBackup
 		ADDED from /Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:14:9-35
 	android:theme
-		ADDED from /Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:19:9-47
+		ADDED from /Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:19:9-40
 activity#com.example.speechapp.MainActivity
 ADDED from /Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:20:9-27:20
 	android:exported

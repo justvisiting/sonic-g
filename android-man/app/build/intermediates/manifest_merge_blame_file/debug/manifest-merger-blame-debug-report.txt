@@ -55,8 +55,8 @@
 34-->/Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:17:9-54
 35        android:supportsRtl="true"
 35-->/Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:18:9-35
-36        android:theme="@style/Theme.SpeechApp" >
-36-->/Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:19:9-47
+36        android:theme="@style/AppTheme" >
+36-->/Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:19:9-40
 37        <activity
 37-->/Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:20:9-27:20
 38            android:name="com.example.speechapp.MainActivity"

@@ -55,6 +55,21 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="24dp"/>
 
+    <Switch
+        android:id="@+id/debugModeSwitch"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Debug Mode"
+        android:layout_marginBottom="8dp"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Show API requests and responses"
+        android:textSize="12sp"
+        android:textColor="@android:color/darker_gray"
+        android:layout_marginBottom="16dp"/>
+
     <Button
         android:id="@+id/saveButton"
         android:layout_width="match_parent"

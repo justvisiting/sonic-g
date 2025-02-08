@@ -8,6 +8,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.Switch;
 import androidx.appcompat.app.AppCompatActivity;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -19,18 +20,22 @@ public class SettingsActivity extends AppCompatActivity {
     private static final String PREFS_NAME = "SpeechAppPrefs";
     private static final String API_KEY_PREF = "gemini_api_key";
     private static final String LANGUAGE_PREF = "tts_language";
-    
+    private static final String DEBUG_MODE_PREF = "debug_mode";
+
     private Map<String, Locale> languageMap;
-    
+    private EditText apiKeyInput;
+    private Switch debugModeSwitch;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
 
-        EditText apiKeyInput = findViewById(R.id.apiKeyInput);
+        apiKeyInput = findViewById(R.id.apiKeyInput);
         Button getKeyButton = findViewById(R.id.getKeyButton);
         Button saveButton = findViewById(R.id.saveButton);
         Spinner languageSpinner = findViewById(R.id.languageSpinner);
+        debugModeSwitch = findViewById(R.id.debugModeSwitch);
 
         // Initialize language map
         languageMap = new LinkedHashMap<>();
@@ -67,6 +72,9 @@ public class SettingsActivity extends AppCompatActivity {
             languageSpinner.setSelection(languagePosition);
         }
 
+        boolean debugMode = prefs.getBoolean(DEBUG_MODE_PREF, false);
+        debugModeSwitch.setChecked(debugMode);
+
         // Open API key generation page
         getKeyButton.setOnClickListener(v -> {
             Intent browserIntent = new Intent(Intent.ACTION_VIEW, 
@@ -78,12 +86,14 @@ public class SettingsActivity extends AppCompatActivity {
         saveButton.setOnClickListener(v -> {
             String apiKey = apiKeyInput.getText().toString().trim();
             String selectedLanguage = (String) languageSpinner.getSelectedItem();
-            
+            boolean isDebugMode = debugModeSwitch.isChecked();
+
             SharedPreferences.Editor editor = prefs.edit();
             editor.putString(API_KEY_PREF, apiKey);
             editor.putString(LANGUAGE_PREF, selectedLanguage);
+            editor.putBoolean(DEBUG_MODE_PREF, isDebugMode);
             editor.apply();
-            
+
             setResult(RESULT_OK);
             finish();
         });

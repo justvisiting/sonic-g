@@ -1367,6 +1367,9 @@ color cardview_dark_background
 color cardview_light_background
 color cardview_shadow_end_color
 color cardview_shadow_start_color
+color colorAccent
+color colorPrimary
+color colorPrimaryDark
 color design_bottom_navigation_shadow_color
 color design_box_stroke_color
 color design_dark_default_color_background
@@ -2953,6 +2956,7 @@ drawable btn_radio_on_mtrl
 drawable btn_radio_on_to_off_mtrl_animation
 drawable chat_bubble_background
 drawable chat_input_background
+drawable debug_log_background
 drawable design_fab_background
 drawable design_ic_visibility
 drawable design_ic_visibility_off
@@ -3141,7 +3145,7 @@ id beginning
 id bestChoice
 id blocking
 id bottom
-id bottomLayout
+id bottomNavigation
 id bounce
 id bounceBoth
 id bounceEnd
@@ -3160,7 +3164,6 @@ id chain
 id chain2
 id chains
 id chatInput
-id chatInputLayout
 id chatRecyclerView
 id checkbox
 id checked
@@ -3189,6 +3192,8 @@ id custom
 id customPanel
 id cut
 id date_picker_actions
+id debugModeSwitch
+id debugRecyclerView
 id decelerate
 id decelerateAndComplete
 id decor_content_parent
@@ -3294,6 +3299,7 @@ id line3
 id linear
 id listMode
 id list_item
+id logText
 id m3_side_sheet
 id marquee
 id masked
@@ -3363,6 +3369,8 @@ id navigation_bar_item_icon_view
 id navigation_bar_item_labels_group
 id navigation_bar_item_large_label_view
 id navigation_bar_item_small_label_view
+id navigation_chat
+id navigation_debug
 id navigation_header_container
 id never
 id neverCompleteToEnd
@@ -3491,6 +3499,7 @@ id stretch
 id submenuarrow
 id submit_area
 id supportScrollUp
+id tabLayout
 id tabMode
 id tag_accessibility_actions
 id tag_accessibility_clickable_spans
@@ -3526,6 +3535,7 @@ id title
 id titleDividerNoCustom
 id title_template
 id toggle
+id toolbar
 id top
 id topPanel
 id touch_outside
@@ -3543,6 +3553,7 @@ id unlabeled
 id up
 id useLogo
 id vertical_only
+id viewPager
 id view_offset_helper
 id view_transition
 id view_tree_lifecycle_owner
@@ -3679,6 +3690,7 @@ layout activity_main
 layout activity_settings
 layout chat_item
 layout custom_dialog
+layout debug_log_item
 layout design_bottom_navigation_item
 layout design_bottom_sheet_dialog
 layout design_layout_snackbar
@@ -3694,6 +3706,8 @@ layout design_navigation_menu
 layout design_navigation_menu_item
 layout design_text_input_end_icon
 layout design_text_input_start_icon
+layout fragment_chat
+layout fragment_debug_log
 layout item_message_bot
 layout item_message_user
 layout m3_alert_dialog
@@ -3758,6 +3772,7 @@ layout select_dialog_item_material
 layout select_dialog_multichoice_material
 layout select_dialog_singlechoice_material
 layout support_simple_spinner_dropdown_item
+menu bottom_nav_menu
 mipmap ic_launcher
 mipmap ic_launcher_round
 plurals mtrl_badge_content_description
@@ -3932,6 +3947,7 @@ style Animation_Material3_SideSheetDialog
 style Animation_Material3_SideSheetDialog_Left
 style Animation_Material3_SideSheetDialog_Right
 style Animation_MaterialComponents_BottomSheetDialog
+style AppTheme
 style Base_AlertDialog_AppCompat
 style Base_AlertDialog_AppCompat_Light
 style Base_Animation_AppCompat_Dialog
