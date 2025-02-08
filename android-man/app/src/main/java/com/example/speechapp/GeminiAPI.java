@@ -19,17 +19,17 @@ public class GeminiAPI {
     private static final String API_KEY_PREF = "gemini_api_key";
     private static final String QUIZ_PROMPT = 
         "You are a friendly quiz master. Follow these rules strictly:\n" +
-        "1. If this is the start (no previous context), introduce yourself briefly and ask the first question.\n" +
-        "2. If this is a user's answer:\n" +
+        "1. Wait for user input before generating the next question\n" +
+        "2. For user answers:\n" +
         "   - Evaluate their answer\n" +
         "   - Give encouraging feedback\n" +
-        "   - Ask if they want to move to the next question (say 'yes' to continue)\n" +
-        "3. If user says 'yes' after feedback:\n" +
-        "   - Ask the next question\n" +
+        "   - Wait for explicit user confirmation before next question\n" +
+        "3. Only ask the next question when user explicitly says 'next' or 'yes'\n" +
         "4. Keep questions varied but simple enough to answer verbally\n" +
         "5. Keep all responses brief and conversational\n" +
-        "6. Track question number and mention it (e.g., 'Question 3:')\n\n" +
-        "Previous conversation context:\n";
+        "6. Track question number and mention it (e.g., 'Question 3:')\n" +
+        "7. NEVER generate both question and answer in the same response\n\n" +
+        "Current conversation:\n";
     
     private final Context context;
     private final OkHttpClient client;
@@ -69,8 +69,10 @@ public class GeminiAPI {
 
         executor.execute(() -> {
             try {
-                // Update conversation history
-                conversationHistory.append("User: ").append(prompt).append("\n");
+                // Only add user input to history if it's not a system command
+                if (!prompt.equals("start quiz")) {
+                    conversationHistory.append("User: ").append(prompt).append("\n");
+                }
 
                 JSONObject jsonBody = new JSONObject();
                 JSONArray contents = new JSONArray();
@@ -79,7 +81,10 @@ public class GeminiAPI {
                 
                 // Add quiz prompt and conversation history
                 JSONObject systemPart = new JSONObject();
-                systemPart.put("text", QUIZ_PROMPT + conversationHistory.toString());
+                String fullPrompt = prompt.equals("start quiz") ? 
+                    "Start a new quiz with a friendly introduction and first question only." :
+                    QUIZ_PROMPT + conversationHistory.toString();
+                systemPart.put("text", fullPrompt);
                 parts.put(systemPart);
                 
                 content.put("parts", parts);
