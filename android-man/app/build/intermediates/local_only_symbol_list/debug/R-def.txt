@@ -13,6 +13,8 @@ drawable chat_bubble_background
 drawable chat_input_background
 drawable debug_log_background
 drawable mic_background
+id action_pause_quiz
+id action_resume_quiz
 id action_settings
 id action_start_quiz
 id action_stop_quiz

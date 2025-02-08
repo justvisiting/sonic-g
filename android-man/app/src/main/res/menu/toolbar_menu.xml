@@ -7,8 +7,20 @@
         android:title="Start Quiz"
         app:showAsAction="always" />
     <item
-        android:id="@+id/action_stop_quiz"
+        android:id="@+id/action_pause_quiz"
         android:icon="@android:drawable/ic_media_pause"
+        android:title="Pause Quiz"
+        android:visible="false"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/action_resume_quiz"
+        android:icon="@android:drawable/ic_media_play"
+        android:title="Resume Quiz"
+        android:visible="false"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/action_stop_quiz"
+        android:icon="@android:drawable/ic_menu_close_clear_cancel"
         android:title="Stop Quiz"
         android:visible="false"
         app:showAsAction="always" />

@@ -32,6 +32,7 @@ public class MainActivity extends AppCompatActivity {
     private EditText chatInput;
     private ImageButton sendButton;
     private boolean quizMode = false;
+    private boolean quizPaused = false;
     private GeminiAPI geminiAPI;
     private Handler mainHandler;
     private Menu optionsMenu;
@@ -124,6 +125,12 @@ public class MainActivity extends AppCompatActivity {
         } else if (itemId == R.id.action_start_quiz) {
             startQuiz();
             return true;
+        } else if (itemId == R.id.action_pause_quiz) {
+            pauseQuiz();
+            return true;
+        } else if (itemId == R.id.action_resume_quiz) {
+            resumeQuiz();
+            return true;
         } else if (itemId == R.id.action_stop_quiz) {
             stopQuiz();
             return true;
@@ -131,15 +138,22 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    private void updateQuizMenuItems(String activeState) {
+        if (optionsMenu == null) return;
+
+        optionsMenu.findItem(R.id.action_start_quiz).setVisible(activeState.equals("stopped"));
+        optionsMenu.findItem(R.id.action_pause_quiz).setVisible(activeState.equals("running"));
+        optionsMenu.findItem(R.id.action_resume_quiz).setVisible(activeState.equals("paused"));
+        optionsMenu.findItem(R.id.action_stop_quiz).setVisible(activeState.equals("running") || activeState.equals("paused"));
+    }
+
     private void startQuiz() {
         Log.d(TAG, "Starting quiz");
         quizMode = true;
+        quizPaused = false;
         
-        // Update menu item visibility
-        if (optionsMenu != null) {
-            optionsMenu.findItem(R.id.action_start_quiz).setVisible(false);
-            optionsMenu.findItem(R.id.action_stop_quiz).setVisible(true);
-        }
+        // Update menu items
+        updateQuizMenuItems("running");
         
         // Start new quiz
         geminiAPI.startNewQuiz(new GeminiAPI.GeminiCallback() {
@@ -159,24 +173,45 @@ public class MainActivity extends AppCompatActivity {
                 runOnUiThread(() -> {
                     Toast.makeText(MainActivity.this, error, Toast.LENGTH_SHORT).show();
                     // Reset menu items if there's an error
-                    if (optionsMenu != null) {
-                        optionsMenu.findItem(R.id.action_start_quiz).setVisible(true);
-                        optionsMenu.findItem(R.id.action_stop_quiz).setVisible(false);
-                    }
+                    updateQuizMenuItems("stopped");
                 });
             }
         });
     }
 
+    private void pauseQuiz() {
+        Log.d(TAG, "Pausing quiz");
+        quizPaused = true;
+        
+        // Update menu items
+        updateQuizMenuItems("paused");
+        
+        // Add pause message
+        String message = "Quiz paused. Click Resume when you're ready to continue.";
+        String hindiMessage = transliterateToHindi(message);
+        addBotMessage(hindiMessage, message);
+    }
+
+    private void resumeQuiz() {
+        Log.d(TAG, "Resuming quiz");
+        quizPaused = false;
+        
+        // Update menu items
+        updateQuizMenuItems("running");
+        
+        // Add resume message
+        String message = "Quiz resumed. Let's continue!";
+        String hindiMessage = transliterateToHindi(message);
+        addBotMessage(hindiMessage, message);
+    }
+
     private void stopQuiz() {
         Log.d(TAG, "Stopping quiz");
         quizMode = false;
+        quizPaused = false;
         
-        // Update menu item visibility
-        if (optionsMenu != null) {
-            optionsMenu.findItem(R.id.action_start_quiz).setVisible(true);
-            optionsMenu.findItem(R.id.action_stop_quiz).setVisible(false);
-        }
+        // Update menu items
+        updateQuizMenuItems("stopped");
         
         // Add quiz stopped message
         String message = "Quiz stopped. Thank you for participating!";
@@ -206,6 +241,14 @@ public class MainActivity extends AppCompatActivity {
 
     private void processUserInput(String text) {
         Log.d(TAG, "Processing user input: " + text);
+        
+        // Don't process input if quiz is paused
+        if (quizMode && quizPaused) {
+            String message = "Quiz is paused. Please resume the quiz to continue.";
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         // Convert to Hindi and add to chat
         String hindiText = transliterateToHindi(text);
         addUserMessage(hindiText, text);
@@ -220,6 +263,8 @@ public class MainActivity extends AppCompatActivity {
                     if (isQuizEnding(response)) {
                         Log.d(TAG, "Quiz is ending");
                         quizMode = false;
+                        quizPaused = false;
+                        updateQuizMenuItems("stopped");
                     }
                     
                     // Convert bot response to Hindi
