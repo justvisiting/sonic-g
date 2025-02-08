@@ -14,6 +14,8 @@ drawable chat_input_background
 drawable debug_log_background
 drawable mic_background
 id action_settings
+id action_start_quiz
+id action_stop_quiz
 id apiKeyInput
 id bottomNavigation
 id chatInput
@@ -33,9 +35,7 @@ id navigation_chat
 id navigation_debug
 id saveButton
 id sendButton
-id startQuizButton
 id statusText
-id stopQuizButton
 id tabLayout
 id toolbar
 id viewPager

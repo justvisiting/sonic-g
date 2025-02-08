@@ -3118,6 +3118,8 @@ id action_mode_bar
 id action_mode_bar_stub
 id action_mode_close_button
 id action_settings
+id action_start_quiz
+id action_stop_quiz
 id action_text
 id actions
 id activity_chooser_view_content
@@ -3488,14 +3490,12 @@ id src_over
 id standard
 id start
 id startHorizontal
-id startQuizButton
 id startToEnd
 id startVertical
 id staticLayout
 id staticPostLayout
 id statusText
 id stop
-id stopQuizButton
 id stretch
 id submenuarrow
 id submit_area

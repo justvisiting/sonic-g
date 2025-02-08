@@ -9,7 +9,6 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Toast;
@@ -30,13 +29,12 @@ public class MainActivity extends AppCompatActivity {
     private static final String API_KEY_PREF = "gemini_api_key";
     private static final String DEBUG_MODE_PREF = "debug_mode";
 
-    private Button startQuizButton;
-    private Button stopQuizButton;
     private EditText chatInput;
     private ImageButton sendButton;
     private boolean quizMode = false;
     private GeminiAPI geminiAPI;
     private Handler mainHandler;
+    private Menu optionsMenu;
 
     private TabLayout tabLayout;
     private ViewPager2 viewPager;
@@ -58,8 +56,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // Initialize views
-        startQuizButton = findViewById(R.id.startQuizButton);
-        stopQuizButton = findViewById(R.id.stopQuizButton);
         chatInput = findViewById(R.id.chatInput);
         sendButton = findViewById(R.id.sendButton);
         tabLayout = findViewById(R.id.tabLayout);
@@ -103,55 +99,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // Set up start quiz button
-        startQuizButton.setOnClickListener(v -> {
-            Log.d(TAG, "Starting quiz");
-            quizMode = true;
-            
-            // Update button visibility
-            startQuizButton.setVisibility(View.GONE);
-            stopQuizButton.setVisibility(View.VISIBLE);
-            
-            // Start new quiz
-            geminiAPI.startNewQuiz(new GeminiAPI.GeminiCallback() {
-                @Override
-                public void onResponse(String response) {
-                    Log.d(TAG, "Got initial quiz response");
-                    runOnUiThread(() -> {
-                        // Convert bot response to Hindi
-                        String botHindiText = transliterateToHindi(response);
-                        addBotMessage(botHindiText, response);
-                    });
-                }
-
-                @Override
-                public void onError(String error) {
-                    Log.e(TAG, "Quiz start error: " + error);
-                    runOnUiThread(() -> {
-                        Toast.makeText(MainActivity.this, error, Toast.LENGTH_SHORT).show();
-                        // Reset buttons if there's an error
-                        startQuizButton.setVisibility(View.VISIBLE);
-                        stopQuizButton.setVisibility(View.GONE);
-                    });
-                }
-            });
-        });
-
-        // Set up stop quiz button
-        stopQuizButton.setOnClickListener(v -> {
-            Log.d(TAG, "Stopping quiz");
-            quizMode = false;
-            
-            // Add quiz stopped message
-            String message = "Quiz stopped. Thank you for participating!";
-            String hindiMessage = transliterateToHindi(message);
-            addBotMessage(hindiMessage, message);
-            
-            // Update button visibility
-            startQuizButton.setVisibility(View.VISIBLE);
-            stopQuizButton.setVisibility(View.GONE);
-        });
-
         // Check if API key is set
         checkApiKey();
 
@@ -163,17 +110,78 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.toolbar_menu, menu);
+        this.optionsMenu = menu;
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.action_settings) {
+        int itemId = item.getItemId();
+        if (itemId == R.id.action_settings) {
             Intent intent = new Intent(this, SettingsActivity.class);
             startActivityForResult(intent, SETTINGS_REQUEST_CODE);
             return true;
+        } else if (itemId == R.id.action_start_quiz) {
+            startQuiz();
+            return true;
+        } else if (itemId == R.id.action_stop_quiz) {
+            stopQuiz();
+            return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void startQuiz() {
+        Log.d(TAG, "Starting quiz");
+        quizMode = true;
+        
+        // Update menu item visibility
+        if (optionsMenu != null) {
+            optionsMenu.findItem(R.id.action_start_quiz).setVisible(false);
+            optionsMenu.findItem(R.id.action_stop_quiz).setVisible(true);
+        }
+        
+        // Start new quiz
+        geminiAPI.startNewQuiz(new GeminiAPI.GeminiCallback() {
+            @Override
+            public void onResponse(String response) {
+                Log.d(TAG, "Got initial quiz response");
+                runOnUiThread(() -> {
+                    // Convert bot response to Hindi
+                    String botHindiText = transliterateToHindi(response);
+                    addBotMessage(botHindiText, response);
+                });
+            }
+
+            @Override
+            public void onError(String error) {
+                Log.e(TAG, "Quiz start error: " + error);
+                runOnUiThread(() -> {
+                    Toast.makeText(MainActivity.this, error, Toast.LENGTH_SHORT).show();
+                    // Reset menu items if there's an error
+                    if (optionsMenu != null) {
+                        optionsMenu.findItem(R.id.action_start_quiz).setVisible(true);
+                        optionsMenu.findItem(R.id.action_stop_quiz).setVisible(false);
+                    }
+                });
+            }
+        });
+    }
+
+    private void stopQuiz() {
+        Log.d(TAG, "Stopping quiz");
+        quizMode = false;
+        
+        // Update menu item visibility
+        if (optionsMenu != null) {
+            optionsMenu.findItem(R.id.action_start_quiz).setVisible(true);
+            optionsMenu.findItem(R.id.action_stop_quiz).setVisible(false);
+        }
+        
+        // Add quiz stopped message
+        String message = "Quiz stopped. Thank you for participating!";
+        String hindiMessage = transliterateToHindi(message);
+        addBotMessage(hindiMessage, message);
     }
 
     @Override
@@ -266,8 +274,10 @@ public class MainActivity extends AppCompatActivity {
             
             // Update button visibility when quiz ends
             runOnUiThread(() -> {
-                startQuizButton.setVisibility(View.VISIBLE);
-                stopQuizButton.setVisibility(View.GONE);
+                if (optionsMenu != null) {
+                    optionsMenu.findItem(R.id.action_start_quiz).setVisible(true);
+                    optionsMenu.findItem(R.id.action_stop_quiz).setVisible(false);
+                }
             });
             return true;
         }
