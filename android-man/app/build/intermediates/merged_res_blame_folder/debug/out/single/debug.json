@@ -1,0 +1,14 @@
+[
+    {
+        "merged": "com.example.speechapp-merged_res-31:/layout_activity_main.xml.flat",
+        "source": "com.example.speechapp-main-33:/layout/activity_main.xml"
+    },
+    {
+        "merged": "com.example.speechapp-merged_res-31:/mipmap-xxxhdpi_ic_launcher_round.xml.flat",
+        "source": "com.example.speechapp-main-33:/mipmap-xxxhdpi/ic_launcher_round.xml"
+    },
+    {
+        "merged": "com.example.speechapp-merged_res-31:/mipmap-xxxhdpi_ic_launcher.xml.flat",
+        "source": "com.example.speechapp-main-33:/mipmap-xxxhdpi/ic_launcher.xml"
+    }
+]
