@@ -4,19 +4,12 @@
     android:layout_height="match_parent"
     android:padding="16dp">
 
-    <LinearLayout
-        android:layout_width="match_parent"
+    <Button
+        android:id="@+id/settingsButton"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="end"
-        android:layout_alignParentTop="true">
-
-        <Button
-            android:id="@+id/settingsButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="⚙️ Settings"/>
-    </LinearLayout>
+        android:layout_alignParentEnd="true"
+        android:text="⚙️ Settings"/>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/chatRecyclerView"
@@ -24,6 +17,7 @@
         android:layout_height="match_parent"
         android:layout_below="@+id/settingsButton"
         android:layout_above="@+id/bottomLayout"
+        android:layout_marginTop="8dp"
         android:layout_marginBottom="8dp" />
 
     <LinearLayout
@@ -36,33 +30,27 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
+            android:orientation="vertical"
             android:layout_marginBottom="8dp">
 
             <TextView
                 android:id="@+id/hindiTextView"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
+                android:textSize="18sp"
                 android:padding="8dp"
                 android:background="#F5F5F5"
-                android:textSize="16sp"
-                android:minHeight="48dp"
-                android:gravity="center_vertical"
-                android:layout_marginEnd="4dp"
+                android:layout_marginBottom="8dp"
                 android:hint="Hindi text..." />
 
             <TextView
                 android:id="@+id/hinglishTextView"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
+                android:textSize="18sp"
                 android:padding="8dp"
                 android:background="#F5F5F5"
-                android:textSize="16sp"
-                android:minHeight="48dp"
-                android:gravity="center_vertical"
-                android:layout_marginStart="4dp"
+                android:layout_marginBottom="8dp"
                 android:hint="Hinglish text..." />
         </LinearLayout>
 

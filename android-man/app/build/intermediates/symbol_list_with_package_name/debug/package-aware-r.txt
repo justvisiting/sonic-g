@@ -3279,6 +3279,7 @@ id item_touch_helper_previous_elevation
 id jumpToEnd
 id jumpToStart
 id labeled
+id languageSpinner
 id layout
 id left
 id leftToRight

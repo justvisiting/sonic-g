@@ -12,6 +12,7 @@ id chatRecyclerView
 id getKeyButton
 id hindiTextView
 id hinglishTextView
+id languageSpinner
 id listenButton
 id messageHindiText
 id messageHinglishText

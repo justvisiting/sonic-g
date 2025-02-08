@@ -33,6 +33,7 @@ public class MainActivity extends AppCompatActivity {
     private static final int SETTINGS_REQUEST_CODE = 125;
     private static final String PREFS_NAME = "SpeechAppPrefs";
     private static final String API_KEY_PREF = "gemini_api_key";
+    private static final String LANGUAGE_PREF = "tts_language";
     
     private TextToSpeech textToSpeech;
     private TextView hindiTextView;
@@ -47,11 +48,30 @@ public class MainActivity extends AppCompatActivity {
     private ChatAdapter chatAdapter;
     private List<ChatMessage> messages;
     private GeminiAPI geminiAPI;
+    private Map<String, Locale> languageMap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // Initialize language map
+        languageMap = new HashMap<>();
+        languageMap.put("Hindi (India)", new Locale("hi", "IN"));
+        languageMap.put("English (US)", new Locale("en", "US"));
+        languageMap.put("English (UK)", new Locale("en", "GB"));
+        languageMap.put("English (India)", new Locale("en", "IN"));
+        languageMap.put("English (Australia)", new Locale("en", "AU"));
+        languageMap.put("Spanish (Spain)", new Locale("es", "ES"));
+        languageMap.put("Spanish (Mexico)", new Locale("es", "MX"));
+        languageMap.put("French (France)", new Locale("fr", "FR"));
+        languageMap.put("German (Germany)", new Locale("de", "DE"));
+        languageMap.put("Italian (Italy)", new Locale("it", "IT"));
+        languageMap.put("Japanese (Japan)", new Locale("ja", "JP"));
+        languageMap.put("Korean (Korea)", new Locale("ko", "KR"));
+        languageMap.put("Chinese (China)", new Locale("zh", "CN"));
+        languageMap.put("Russian (Russia)", new Locale("ru", "RU"));
+        languageMap.put("Arabic (Saudi Arabia)", new Locale("ar", "SA"));
 
         // Initialize views
         hindiTextView = findViewById(R.id.hindiTextView);
@@ -71,40 +91,8 @@ public class MainActivity extends AppCompatActivity {
         // Initialize Gemini API
         geminiAPI = new GeminiAPI(this);
 
-        // Initialize Text to Speech
-        textToSpeech = new TextToSpeech(this, status -> {
-            if (status == TextToSpeech.SUCCESS) {
-                textToSpeech.setLanguage(new Locale("hi", "IN"));
-                textToSpeech.setOnUtteranceProgressListener(new UtteranceProgressListener() {
-                    @Override
-                    public void onStart(String utteranceId) {
-                        runOnUiThread(() -> {
-                            isSpeaking = true;
-                            stopButton.setVisibility(View.VISIBLE);
-                            speakButton.setVisibility(View.GONE);
-                        });
-                    }
-
-                    @Override
-                    public void onDone(String utteranceId) {
-                        runOnUiThread(() -> {
-                            isSpeaking = false;
-                            stopButton.setVisibility(View.GONE);
-                            speakButton.setVisibility(View.VISIBLE);
-                        });
-                    }
-
-                    @Override
-                    public void onError(String utteranceId) {
-                        runOnUiThread(() -> {
-                            isSpeaking = false;
-                            stopButton.setVisibility(View.GONE);
-                            speakButton.setVisibility(View.VISIBLE);
-                        });
-                    }
-                });
-            }
-        });
+        // Initialize Text to Speech with current language
+        initializeTextToSpeech();
 
         // Set up listen button
         listenButton.setOnClickListener(v -> {
@@ -170,8 +158,9 @@ public class MainActivity extends AppCompatActivity {
                 String spokenText = results.get(0);
                 processUserInput(spokenText);
             }
-        } else if (requestCode == SETTINGS_REQUEST_CODE) {
-            checkApiKey();
+        } else if (requestCode == SETTINGS_REQUEST_CODE && resultCode == RESULT_OK) {
+            // Reinitialize TTS with new language
+            initializeTextToSpeech();
         }
     }
 
@@ -408,5 +397,57 @@ public class MainActivity extends AppCompatActivity {
             .replace("्ं", "ं");
             
         return finalText;
+    }
+
+    private void initializeTextToSpeech() {
+        if (textToSpeech != null) {
+            textToSpeech.stop();
+            textToSpeech.shutdown();
+        }
+
+        textToSpeech = new TextToSpeech(this, status -> {
+            if (status == TextToSpeech.SUCCESS) {
+                // Get saved language preference
+                SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+                String savedLanguage = prefs.getString(LANGUAGE_PREF, "Hindi (India)");
+                Locale locale = languageMap.get(savedLanguage);
+                
+                if (locale != null) {
+                    int result = textToSpeech.setLanguage(locale);
+                    if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                        Toast.makeText(this, "This language is not supported", Toast.LENGTH_SHORT).show();
+                    }
+                }
+
+                textToSpeech.setOnUtteranceProgressListener(new UtteranceProgressListener() {
+                    @Override
+                    public void onStart(String utteranceId) {
+                        runOnUiThread(() -> {
+                            isSpeaking = true;
+                            stopButton.setVisibility(View.VISIBLE);
+                            speakButton.setVisibility(View.GONE);
+                        });
+                    }
+
+                    @Override
+                    public void onDone(String utteranceId) {
+                        runOnUiThread(() -> {
+                            isSpeaking = false;
+                            stopButton.setVisibility(View.GONE);
+                            speakButton.setVisibility(View.VISIBLE);
+                        });
+                    }
+
+                    @Override
+                    public void onError(String utteranceId) {
+                        runOnUiThread(() -> {
+                            isSpeaking = false;
+                            stopButton.setVisibility(View.GONE);
+                            speakButton.setVisibility(View.VISIBLE);
+                        });
+                    }
+                });
+            }
+        });
     }
 }
