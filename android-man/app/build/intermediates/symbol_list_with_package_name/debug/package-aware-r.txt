@@ -3304,6 +3304,8 @@ id groups
 id header_title
 id hide_ime_id
 id hideable
+id hindiTextView
+id hinglishTextView
 id home
 id homeAsUp
 id honorRequest
@@ -3546,7 +3548,6 @@ id textSpacerNoButtons
 id textSpacerNoTitle
 id textStart
 id textTop
-id textView
 id text_input_end_icon
 id text_input_error_icon
 id text_input_start_icon

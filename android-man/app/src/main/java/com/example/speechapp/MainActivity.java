@@ -1,6 +1,7 @@
 package com.example.speechapp;
 
 import android.Manifest;
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -9,6 +10,7 @@ import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.Voice;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -16,26 +18,29 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
     private static final int PERMISSION_REQUEST_CODE = 123;
+    private static final int SPEECH_REQUEST_CODE = 124;
     private TextToSpeech textToSpeech;
     private SpeechRecognizer speechRecognizer;
     private EditText editText;
-    private TextView textView;
+    private TextView hindiTextView;
+    private TextView hinglishTextView;
     private Button speakButton;
     private Button listenButton;
     private Button languageButton;
     private boolean isListening = false;
-    private String currentLanguage = "en-IN"; // Default to Indian English
-    private int currentMode = 0; // 0: Indian English, 1: Hindi, 2: Hinglish
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,7 +48,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         editText = findViewById(R.id.editText);
-        textView = findViewById(R.id.textView);
+        hindiTextView = findViewById(R.id.hindiTextView);
+        hinglishTextView = findViewById(R.id.hinglishTextView);
         speakButton = findViewById(R.id.speakButton);
         listenButton = findViewById(R.id.listenButton);
         languageButton = findViewById(R.id.languageButton);
@@ -59,8 +65,13 @@ public class MainActivity extends AppCompatActivity {
             editText.setImportantForAutofill(View.IMPORTANT_FOR_AUTOFILL_NO);
         }
 
-        // Initialize TTS with Indian accent
-        initializeTextToSpeech();
+        // Initialize language button text
+        updateLanguageButtonText();
+
+        // Set up language button click
+        languageButton.setOnClickListener(v -> {
+            Toast.makeText(MainActivity.this, "Always showing both Hindi and Hinglish translations", Toast.LENGTH_SHORT).show();
+        });
 
         // Initialize Speech Recognizer
         if (SpeechRecognizer.isRecognitionAvailable(this)) {
@@ -131,7 +142,7 @@ public class MainActivity extends AppCompatActivity {
                     ArrayList<String> matches = bundle.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
                     if (matches != null && !matches.isEmpty()) {
                         String text = matches.get(0);
-                        textView.setText(text);
+                        hinglishTextView.setText(text);
                     }
                 }
 
@@ -140,7 +151,7 @@ public class MainActivity extends AppCompatActivity {
                     ArrayList<String> matches = bundle.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
                     if (matches != null && !matches.isEmpty()) {
                         String text = matches.get(0);
-                        textView.setText(text);
+                        hinglishTextView.setText(text);
                     }
                 }
 
@@ -152,35 +163,7 @@ public class MainActivity extends AppCompatActivity {
             listenButton.setEnabled(false);
         }
 
-        // Language Toggle Button
-        updateLanguageButtonText();
-        languageButton.setOnClickListener(v -> {
-            currentMode = (currentMode + 1) % 3;
-            switch (currentMode) {
-                case 0: // Indian English
-                    currentLanguage = "en-IN";
-                    break;
-                case 1: // Hindi
-                    currentLanguage = "hi-IN";
-                    break;
-                case 2: // Hinglish
-                    currentLanguage = "en-IN,hi-IN";
-                    break;
-            }
-            updateLanguageButtonText();
-        });
-
-        // Speak Button Click Listener
-        speakButton.setOnClickListener(v -> {
-            String text = editText.getText().toString();
-            if (!text.isEmpty()) {
-                textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null, null);
-            } else {
-                Toast.makeText(MainActivity.this, "Please enter text to speak", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        // Listen Button Click Listener
+        // Set up listen button
         listenButton.setOnClickListener(v -> {
             if (checkPermission()) {
                 if (!isListening) {
@@ -192,39 +175,19 @@ public class MainActivity extends AppCompatActivity {
                 requestPermission();
             }
         });
-    }
 
-    private void initializeTextToSpeech() {
+        // Initialize Text to Speech
         textToSpeech = new TextToSpeech(this, status -> {
             if (status == TextToSpeech.SUCCESS) {
-                // Try to set Indian English voice
-                int result = textToSpeech.setLanguage(new Locale("en", "IN"));
-                
-                // Set Indian voice if available
-                Set<Voice> voices = textToSpeech.getVoices();
-                if (voices != null) {
-                    for (Voice voice : voices) {
-                        Locale locale = voice.getLocale();
-                        if (locale.getCountry().equals("IN")) {
-                            textToSpeech.setVoice(voice);
-                            break;
-                        }
-                    }
-                }
-                
-                // Set speech rate and pitch for more natural Indian accent
-                textToSpeech.setSpeechRate(0.85f);  // Slightly slower
-                textToSpeech.setPitch(0.95f);       // Slightly lower pitch
-                
-                if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                    // If Indian English is not available, try Hindi
-                    result = textToSpeech.setLanguage(new Locale("hi", "IN"));
-                    if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                        Toast.makeText(MainActivity.this, "Indian language pack not installed", Toast.LENGTH_SHORT).show();
-                    }
-                }
-            } else {
-                Toast.makeText(MainActivity.this, "Text to Speech initialization failed", Toast.LENGTH_SHORT).show();
+                textToSpeech.setLanguage(new Locale("hi", "IN"));
+            }
+        });
+
+        // Set up speak button
+        speakButton.setOnClickListener(v -> {
+            String text = editText.getText().toString();
+            if (!text.isEmpty()) {
+                textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null, null);
             }
         });
     }
@@ -232,34 +195,14 @@ public class MainActivity extends AppCompatActivity {
     private void startListening() {
         Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-
-        if (currentMode == 2) { // Hinglish mode
-            // Support both Indian English and Hindi
-            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "en-IN,hi-IN");
-            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, "en-IN");
-            intent.putExtra(RecognizerIntent.EXTRA_ONLY_RETURN_LANGUAGE_PREFERENCE, false);
-            // Add supported languages
-            ArrayList<String> languages = new ArrayList<>();
-            languages.add("en-IN");
-            languages.add("hi-IN");
-            intent.putStringArrayListExtra(RecognizerIntent.EXTRA_SUPPORTED_LANGUAGES, languages);
-        } else {
-            // Single language mode
-            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, currentLanguage);
-            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, currentLanguage);
-            intent.putExtra(RecognizerIntent.EXTRA_ONLY_RETURN_LANGUAGE_PREFERENCE, true);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "en-IN");
+        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Speak now...");
+        
+        try {
+            startActivityForResult(intent, SPEECH_REQUEST_CODE);
+        } catch (ActivityNotFoundException e) {
+            Toast.makeText(this, "Speech recognition not available", Toast.LENGTH_SHORT).show();
         }
-
-        intent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true);
-        intent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS, 5000);
-        intent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 1500);
-        intent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS, 1500);
-        intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3);
-        intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, getPackageName());
-
-        isListening = true;
-        listenButton.setText("Stop Listening");
-        speechRecognizer.startListening(intent);
     }
 
     private void stopListening() {
@@ -292,31 +235,111 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void updateLanguageButtonText() {
-        switch (currentMode) {
-            case 0:
-                languageButton.setText("Mode: Indian English");
-                Toast.makeText(MainActivity.this, "Switched to Indian English", Toast.LENGTH_SHORT).show();
-                if (textToSpeech != null) {
-                    textToSpeech.setLanguage(new Locale("en", "IN"));
-                }
-                break;
-            case 1:
-                languageButton.setText("Mode: Hindi");
-                Toast.makeText(MainActivity.this, "Switched to Hindi", Toast.LENGTH_SHORT).show();
-                if (textToSpeech != null) {
-                    textToSpeech.setLanguage(new Locale("hi", "IN"));
-                }
-                break;
-            case 2:
-                languageButton.setText("Mode: Hinglish");
-                Toast.makeText(MainActivity.this, "Switched to Hinglish", Toast.LENGTH_SHORT).show();
-                if (textToSpeech != null) {
-                    // Use Hindi for better pronunciation of mixed language
-                    textToSpeech.setLanguage(new Locale("hi", "IN"));
-                }
-                break;
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == SPEECH_REQUEST_CODE && resultCode == RESULT_OK && data != null) {
+            ArrayList<String> results = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+            if (results != null && !results.isEmpty()) {
+                String spokenText = results.get(0);
+                Log.d("SpeechApp", "Spoken text: " + spokenText);
+                
+                // Always show both Hindi and Hinglish
+                String devanagari = transliterateToHindi(spokenText);
+                Log.d("SpeechApp", "Devanagari: " + devanagari);
+                
+                // Set text on UI thread
+                final String finalDevanagari = devanagari;
+                runOnUiThread(() -> {
+                    hindiTextView.setText(finalDevanagari);
+                    hinglishTextView.setText(spokenText);
+                    Toast.makeText(MainActivity.this, 
+                        "Hindi: " + finalDevanagari + "\nHinglish: " + spokenText, 
+                        Toast.LENGTH_LONG).show();
+                });
+            }
         }
+    }
+
+    private void updateLanguageButtonText() {
+        languageButton.setText("Mode: Voice to Hindi & Hinglish");
+        Toast.makeText(MainActivity.this, "Speak in any language - Will show both Hindi and Hinglish", Toast.LENGTH_SHORT).show();
+    }
+
+    // Helper method to transliterate English (romanized) text to Hindi
+    private String transliterateToHindi(String englishText) {
+        Map<String, String> reverseTranslitMap = new HashMap<>();
+        // Basic vowels
+        reverseTranslitMap.put("a", "अ"); reverseTranslitMap.put("aa", "आ");
+        reverseTranslitMap.put("i", "इ"); reverseTranslitMap.put("ee", "ई");
+        reverseTranslitMap.put("u", "उ"); reverseTranslitMap.put("oo", "ऊ");
+        reverseTranslitMap.put("e", "ए"); reverseTranslitMap.put("ai", "ऐ");
+        reverseTranslitMap.put("o", "ओ"); reverseTranslitMap.put("au", "औ");
+        
+        // Consonants with inherent 'a'
+        reverseTranslitMap.put("ka", "क"); reverseTranslitMap.put("kha", "ख");
+        reverseTranslitMap.put("ga", "ग"); reverseTranslitMap.put("gha", "घ");
+        reverseTranslitMap.put("cha", "च"); reverseTranslitMap.put("chha", "छ");
+        reverseTranslitMap.put("ja", "ज"); reverseTranslitMap.put("jha", "झ");
+        reverseTranslitMap.put("ta", "त"); reverseTranslitMap.put("tha", "थ");
+        reverseTranslitMap.put("da", "द"); reverseTranslitMap.put("dha", "ध");
+        reverseTranslitMap.put("na", "न"); reverseTranslitMap.put("pa", "प");
+        reverseTranslitMap.put("pha", "फ"); reverseTranslitMap.put("ba", "ब");
+        reverseTranslitMap.put("bha", "भ"); reverseTranslitMap.put("ma", "म");
+        reverseTranslitMap.put("ya", "य"); reverseTranslitMap.put("ra", "र");
+        reverseTranslitMap.put("la", "ल"); reverseTranslitMap.put("va", "व");
+        reverseTranslitMap.put("sha", "श"); reverseTranslitMap.put("sa", "स");
+        reverseTranslitMap.put("ha", "ह"); 
+        
+        // Common words
+        reverseTranslitMap.put("main", "मैं");
+        reverseTranslitMap.put("hai", "है");
+        reverseTranslitMap.put("hoon", "हूं");
+        reverseTranslitMap.put("kya", "क्या");
+        reverseTranslitMap.put("aap", "आप");
+        reverseTranslitMap.put("tum", "तुम");
+        reverseTranslitMap.put("kaise", "कैसे");
+        reverseTranslitMap.put("namaste", "नमस्ते");
+        
+        // Simple word-by-word transliteration
+        String[] words = englishText.toLowerCase().split("\\s+");
+        StringBuilder result = new StringBuilder();
+        
+        for (String word : words) {
+            boolean wordTranslated = false;
+            
+            // First try to match the whole word
+            if (reverseTranslitMap.containsKey(word)) {
+                result.append(reverseTranslitMap.get(word));
+                wordTranslated = true;
+            } else {
+                // Try to match parts of the word
+                StringBuilder currentWord = new StringBuilder();
+                int i = 0;
+                while (i < word.length()) {
+                    boolean matchFound = false;
+                    // Try to match longer sequences first
+                    for (int len = Math.min(4, word.length() - i); len > 0; len--) {
+                        String part = word.substring(i, i + len);
+                        if (reverseTranslitMap.containsKey(part)) {
+                            currentWord.append(reverseTranslitMap.get(part));
+                            i += len;
+                            matchFound = true;
+                            break;
+                        }
+                    }
+                    if (!matchFound) {
+                        // If no match found, keep the original character
+                        currentWord.append(word.charAt(i));
+                        i++;
+                    }
+                }
+                result.append(currentWord);
+            }
+            result.append(" ");
+        }
+        
+        return result.toString().trim();
     }
 
     @Override

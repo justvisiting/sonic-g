@@ -6,23 +6,15 @@
     android:orientation="vertical"
     android:padding="16dp">
 
-    <com.google.android.material.textfield.TextInputLayout
+    <EditText
+        android:id="@+id/editText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Type text here..."
-        style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
-
-        <EditText
-            android:id="@+id/editText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Type text here..."
-            android:padding="16dp"
-            android:minLines="3"
-            android:gravity="top|start"
-            android:background="@android:color/transparent" />
-
-    </com.google.android.material.textfield.TextInputLayout>
+        android:padding="16dp"
+        android:minLines="3"
+        android:gravity="top|start"
+        android:background="@android:color/transparent" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -43,25 +35,62 @@
             android:layout_height="wrap_content"
             android:text="Speak Text" />
 
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/listenButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Start Listening"
+            android:layout_marginTop="8dp" />
     </LinearLayout>
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/listenButton"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="Start Listening"
-        style="@style/Widget.Material3.Button.TonalButton" />
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:layout_marginTop="16dp">
 
-    <com.google.android.material.textview.MaterialTextView
-        android:id="@+id/textView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:padding="16dp"
-        android:text="Spoken text will appear here..."
-        android:textSize="16sp"
-        android:background="@android:color/darker_gray"
-        android:textColor="@android:color/white" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Hindi (देवनागरी)"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:layout_marginBottom="4dp" />
+
+        <TextView
+            android:id="@+id/hindiTextView"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:padding="12dp"
+            android:textSize="18sp"
+            android:background="#F5F5F5"
+            android:gravity="top|start"
+            android:hint="Hindi text will appear here..."
+            android:textIsSelectable="true" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Hinglish (Romanized)"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="4dp" />
+
+        <TextView
+            android:id="@+id/hinglishTextView"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:padding="12dp"
+            android:textSize="18sp"
+            android:background="#F5F5F5"
+            android:gravity="top|start"
+            android:hint="Hinglish text will appear here..."
+            android:textIsSelectable="true" />
+
+    </LinearLayout>
 
 </LinearLayout>
