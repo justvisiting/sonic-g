@@ -60,10 +60,10 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:hint="Type your message..."
+            android:hint="Type your message... (Press Enter twice to send)"
             android:imeOptions="actionSend"
-            android:inputType="text"
-            android:maxLines="1" />
+            android:inputType="textMultiLine"
+            android:maxLines="4" />
 
         <ImageButton
             android:id="@+id/sendButton"

@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -36,6 +37,9 @@ public class MainActivity extends AppCompatActivity {
     private GeminiAPI geminiAPI;
     private Handler mainHandler;
     private Menu optionsMenu;
+    private long lastEnterTime = 0;
+    private static final long DOUBLE_ENTER_THRESHOLD = 500; // milliseconds
+    private boolean lastKeyWasEnter = false;
 
     private TabLayout tabLayout;
     private ViewPager2 viewPager;
@@ -92,6 +96,27 @@ public class MainActivity extends AppCompatActivity {
         geminiAPI = new GeminiAPI(this);
 
         // Set up chat input
+        chatInput.setOnEditorActionListener((v, actionId, event) -> {
+            if (event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
+                long currentTime = System.currentTimeMillis();
+                if (lastKeyWasEnter && currentTime - lastEnterTime < DOUBLE_ENTER_THRESHOLD) {
+                    // Double enter detected
+                    String text = chatInput.getText().toString().trim();
+                    if (!text.isEmpty()) {
+                        processUserInput(text);
+                        chatInput.setText("");
+                        lastKeyWasEnter = false;
+                        return true;
+                    }
+                }
+                lastKeyWasEnter = true;
+                lastEnterTime = currentTime;
+            } else {
+                lastKeyWasEnter = false;
+            }
+            return false;
+        });
+
         sendButton.setOnClickListener(v -> {
             String text = chatInput.getText().toString().trim();
             if (!text.isEmpty()) {
