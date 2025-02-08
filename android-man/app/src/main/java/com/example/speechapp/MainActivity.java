@@ -325,11 +325,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void addUserMessage(String displayText, String originalText) {
-        chatFragment.addMessage(new ChatMessage(displayText, originalText, "user", ChatMessage.TYPE_USER));
+        chatFragment.addMessage(new ChatMessage(displayText, originalText, "", ChatMessage.TYPE_USER));
     }
 
     private void addBotMessage(String displayText, String originalText) {
-        chatFragment.addMessage(new ChatMessage(displayText, originalText, "assistant", ChatMessage.TYPE_BOT));
+        chatFragment.addMessage(new ChatMessage(displayText, originalText, "", ChatMessage.TYPE_BOT));
     }
 
     public void addDebugLog(String log) {
