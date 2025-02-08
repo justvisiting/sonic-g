@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.example.speechapp-mergeDebugResources-30:/values-sw600dp-v13/values-sw600dp-v13.xml",
+            "outputFile": "com.example.speechapp-mergeDebugResources-34:/values-sw600dp-v13/values-sw600dp-v13.xml",
             "map": [
                 {
                     "source": "/Users/vc/.gradle/caches/8.10.2/transforms/e6b90d9473e099143e66326e18e4d50b/transformed/appcompat-1.6.1/res/values-sw600dp-v13/values-sw600dp-v13.xml",
@@ -14,7 +14,7 @@
                     }
                 },
                 {
-                    "source": "/Users/vc/.gradle/caches/8.10.2/transforms/a155f370fbf0eec95a2345a7fca8efe8/transformed/material-1.10.0/res/values-sw600dp-v13/values-sw600dp-v13.xml",
+                    "source": "/Users/vc/.gradle/caches/8.10.2/transforms/0e291897443feb287cd5b4dcc2dd21b3/transformed/material-1.9.0/res/values-sw600dp-v13/values-sw600dp-v13.xml",
                     "from": {
                         "startLines": "2,3,4,5,6,7,8,10,11,12,13,14",
                         "startColumns": "4,4,4,4,4,4,4,4,4,4,4,4",

@@ -1,5 +1,7 @@
 R_DEF: Internal format may change without notice
 local
+array language_entries
+array language_values
 color accent
 color background
 color colorAccent
@@ -58,5 +60,12 @@ menu toolbar_menu
 mipmap ic_launcher
 mipmap ic_launcher_round
 string app_name
+string settings_api_key_summary
+string settings_api_key_title
+string settings_debug_mode_summary
+string settings_debug_mode_title
+string settings_language_summary
+string settings_language_title
 style AppTheme
 style Theme.SpeechApp
+xml preferences

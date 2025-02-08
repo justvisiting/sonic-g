@@ -1,8 +1,9 @@
-#Sat Feb 08 17:03:08 IST 2025
+#Sat Feb 08 17:16:07 IST 2025
 base.0=/Users/vc/github/sonic-g/android-man/app/build/intermediates/dex/debug/mergeExtDexDebug/classes.dex
 base.1=/Users/vc/github/sonic-g/android-man/app/build/intermediates/dex/debug/mergeProjectDexDebug/0/classes.dex
 base.10=/Users/vc/github/sonic-g/android-man/app/build/intermediates/dex/debug/mergeExtDexDebug/classes8.dex
 base.11=/Users/vc/github/sonic-g/android-man/app/build/intermediates/dex/debug/mergeExtDexDebug/classes9.dex
+base.12=/Users/vc/github/sonic-g/android-man/app/build/intermediates/dex/debug/mergeExtDexDebug/classes11.dex
 base.2=/Users/vc/github/sonic-g/android-man/app/build/intermediates/dex/debug/mergeProjectDexDebug/5/classes.dex
 base.3=/Users/vc/github/sonic-g/android-man/app/build/intermediates/dex/debug/mergeExtDexDebug/classes10.dex
 base.4=/Users/vc/github/sonic-g/android-man/app/build/intermediates/dex/debug/mergeExtDexDebug/classes2.dex
@@ -15,6 +16,7 @@ path.0=classes.dex
 path.1=0/classes.dex
 path.10=classes8.dex
 path.11=classes9.dex
+path.12=classes11.dex
 path.2=5/classes.dex
 path.3=classes10.dex
 path.4=classes2.dex
@@ -27,6 +29,7 @@ renamed.0=classes.dex
 renamed.1=classes2.dex
 renamed.10=classes11.dex
 renamed.11=classes12.dex
+renamed.12=classes13.dex
 renamed.2=classes3.dex
 renamed.3=classes4.dex
 renamed.4=classes5.dex
