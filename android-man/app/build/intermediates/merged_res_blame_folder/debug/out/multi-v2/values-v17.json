@@ -1,10 +1,10 @@
 {
     "logs": [
         {
-            "outputFile": "com.example.speechapp-mergeDebugResources-29:/values-v17/values-v17.xml",
+            "outputFile": "com.example.speechapp-mergeDebugResources-30:/values-v17/values-v17.xml",
             "map": [
                 {
-                    "source": "/Users/vc/.gradle/caches/8.10.2/transforms/4cb4213782ece4bc1797d5906076c41e/transformed/appcompat-1.7.0-alpha03/res/values-v17/values-v17.xml",
+                    "source": "/Users/vc/.gradle/caches/8.10.2/transforms/e6b90d9473e099143e66326e18e4d50b/transformed/appcompat-1.6.1/res/values-v17/values-v17.xml",
                     "from": {
                         "startLines": "2,5,9,12,15,18,22,25,29,33,37,40,43,46,50,53,57",
                         "startColumns": "4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4",

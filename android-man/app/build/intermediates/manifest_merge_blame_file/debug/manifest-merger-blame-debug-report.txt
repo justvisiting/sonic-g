@@ -6,7 +6,7 @@
 6
 7    <uses-sdk
 8        android:minSdkVersion="26"
-9        android:targetSdkVersion="35" />
+9        android:targetSdkVersion="34" />
 10
 11    <uses-permission android:name="android.permission.RECORD_AUDIO" />
 11-->/Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:4:5-70
@@ -16,22 +16,22 @@
 12-->/Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:5:22-64
 13
 14    <permission
-14-->[androidx.core:core:1.12.0-beta01] /Users/vc/.gradle/caches/8.10.2/transforms/ab77911b869909b9f8e128bee61f4191/transformed/core-1.12.0-beta01/AndroidManifest.xml:22:5-24:47
+14-->[androidx.core:core:1.9.0] /Users/vc/.gradle/caches/8.10.2/transforms/9d1d223da40b4d4b2381736cc5c30bb5/transformed/core-1.9.0/AndroidManifest.xml:22:5-24:47
 15        android:name="com.example.speechapp.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
-15-->[androidx.core:core:1.12.0-beta01] /Users/vc/.gradle/caches/8.10.2/transforms/ab77911b869909b9f8e128bee61f4191/transformed/core-1.12.0-beta01/AndroidManifest.xml:23:9-81
+15-->[androidx.core:core:1.9.0] /Users/vc/.gradle/caches/8.10.2/transforms/9d1d223da40b4d4b2381736cc5c30bb5/transformed/core-1.9.0/AndroidManifest.xml:23:9-81
 16        android:protectionLevel="signature" />
-16-->[androidx.core:core:1.12.0-beta01] /Users/vc/.gradle/caches/8.10.2/transforms/ab77911b869909b9f8e128bee61f4191/transformed/core-1.12.0-beta01/AndroidManifest.xml:24:9-44
+16-->[androidx.core:core:1.9.0] /Users/vc/.gradle/caches/8.10.2/transforms/9d1d223da40b4d4b2381736cc5c30bb5/transformed/core-1.9.0/AndroidManifest.xml:24:9-44
 17
 18    <uses-permission android:name="com.example.speechapp.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
-18-->[androidx.core:core:1.12.0-beta01] /Users/vc/.gradle/caches/8.10.2/transforms/ab77911b869909b9f8e128bee61f4191/transformed/core-1.12.0-beta01/AndroidManifest.xml:26:5-97
-18-->[androidx.core:core:1.12.0-beta01] /Users/vc/.gradle/caches/8.10.2/transforms/ab77911b869909b9f8e128bee61f4191/transformed/core-1.12.0-beta01/AndroidManifest.xml:26:22-94
+18-->[androidx.core:core:1.9.0] /Users/vc/.gradle/caches/8.10.2/transforms/9d1d223da40b4d4b2381736cc5c30bb5/transformed/core-1.9.0/AndroidManifest.xml:26:5-97
+18-->[androidx.core:core:1.9.0] /Users/vc/.gradle/caches/8.10.2/transforms/9d1d223da40b4d4b2381736cc5c30bb5/transformed/core-1.9.0/AndroidManifest.xml:26:22-94
 19
 20    <application
 20-->/Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:7:5-22:19
 21        android:allowBackup="true"
 21-->/Users/vc/github/sonic-g/android-man/app/src/main/AndroidManifest.xml:8:9-35
 22        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
-22-->[androidx.core:core:1.12.0-beta01] /Users/vc/.gradle/caches/8.10.2/transforms/ab77911b869909b9f8e128bee61f4191/transformed/core-1.12.0-beta01/AndroidManifest.xml:28:18-86
+22-->[androidx.core:core:1.9.0] /Users/vc/.gradle/caches/8.10.2/transforms/9d1d223da40b4d4b2381736cc5c30bb5/transformed/core-1.9.0/AndroidManifest.xml:28:18-86
 23        android:debuggable="true"
 24        android:extractNativeLibs="false"
 25        android:icon="@mipmap/ic_launcher"
@@ -63,19 +63,19 @@
 38        </activity>
 39
 40        <provider
-40-->[androidx.emoji2:emoji2:1.3.0] /Users/vc/.gradle/caches/8.10.2/transforms/43155d003eac2e8251e5a64c3f95821b/transformed/emoji2-1.3.0/AndroidManifest.xml:24:9-32:20
+40-->[androidx.emoji2:emoji2:1.2.0] /Users/vc/.gradle/caches/8.10.2/transforms/d691d80836088e9f6024db0771e01bce/transformed/emoji2-1.2.0/AndroidManifest.xml:24:9-32:20
 41            android:name="androidx.startup.InitializationProvider"
-41-->[androidx.emoji2:emoji2:1.3.0] /Users/vc/.gradle/caches/8.10.2/transforms/43155d003eac2e8251e5a64c3f95821b/transformed/emoji2-1.3.0/AndroidManifest.xml:25:13-67
+41-->[androidx.emoji2:emoji2:1.2.0] /Users/vc/.gradle/caches/8.10.2/transforms/d691d80836088e9f6024db0771e01bce/transformed/emoji2-1.2.0/AndroidManifest.xml:25:13-67
 42            android:authorities="com.example.speechapp.androidx-startup"
-42-->[androidx.emoji2:emoji2:1.3.0] /Users/vc/.gradle/caches/8.10.2/transforms/43155d003eac2e8251e5a64c3f95821b/transformed/emoji2-1.3.0/AndroidManifest.xml:26:13-68
+42-->[androidx.emoji2:emoji2:1.2.0] /Users/vc/.gradle/caches/8.10.2/transforms/d691d80836088e9f6024db0771e01bce/transformed/emoji2-1.2.0/AndroidManifest.xml:26:13-68
 43            android:exported="false" >
-43-->[androidx.emoji2:emoji2:1.3.0] /Users/vc/.gradle/caches/8.10.2/transforms/43155d003eac2e8251e5a64c3f95821b/transformed/emoji2-1.3.0/AndroidManifest.xml:27:13-37
+43-->[androidx.emoji2:emoji2:1.2.0] /Users/vc/.gradle/caches/8.10.2/transforms/d691d80836088e9f6024db0771e01bce/transformed/emoji2-1.2.0/AndroidManifest.xml:27:13-37
 44            <meta-data
-44-->[androidx.emoji2:emoji2:1.3.0] /Users/vc/.gradle/caches/8.10.2/transforms/43155d003eac2e8251e5a64c3f95821b/transformed/emoji2-1.3.0/AndroidManifest.xml:29:13-31:52
+44-->[androidx.emoji2:emoji2:1.2.0] /Users/vc/.gradle/caches/8.10.2/transforms/d691d80836088e9f6024db0771e01bce/transformed/emoji2-1.2.0/AndroidManifest.xml:29:13-31:52
 45                android:name="androidx.emoji2.text.EmojiCompatInitializer"
-45-->[androidx.emoji2:emoji2:1.3.0] /Users/vc/.gradle/caches/8.10.2/transforms/43155d003eac2e8251e5a64c3f95821b/transformed/emoji2-1.3.0/AndroidManifest.xml:30:17-75
+45-->[androidx.emoji2:emoji2:1.2.0] /Users/vc/.gradle/caches/8.10.2/transforms/d691d80836088e9f6024db0771e01bce/transformed/emoji2-1.2.0/AndroidManifest.xml:30:17-75
 46                android:value="androidx.startup" />
-46-->[androidx.emoji2:emoji2:1.3.0] /Users/vc/.gradle/caches/8.10.2/transforms/43155d003eac2e8251e5a64c3f95821b/transformed/emoji2-1.3.0/AndroidManifest.xml:31:17-49
+46-->[androidx.emoji2:emoji2:1.2.0] /Users/vc/.gradle/caches/8.10.2/transforms/d691d80836088e9f6024db0771e01bce/transformed/emoji2-1.2.0/AndroidManifest.xml:31:17-49
 47            <meta-data
 47-->[androidx.lifecycle:lifecycle-process:2.6.1] /Users/vc/.gradle/caches/8.10.2/transforms/dc1e397f2e794278c8834916b00c5d70/transformed/lifecycle-process-2.6.1/AndroidManifest.xml:29:13-31:52
 48                android:name="androidx.lifecycle.ProcessLifecycleInitializer"

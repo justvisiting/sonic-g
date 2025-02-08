@@ -5,176 +5,58 @@ import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
-import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
-import android.speech.tts.Voice;
 import android.util.Log;
-import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
     private static final int PERMISSION_REQUEST_CODE = 123;
     private static final int SPEECH_REQUEST_CODE = 124;
     private TextToSpeech textToSpeech;
-    private SpeechRecognizer speechRecognizer;
-    private EditText editText;
     private TextView hindiTextView;
     private TextView hinglishTextView;
     private Button speakButton;
     private Button listenButton;
-    private Button languageButton;
     private boolean isListening = false;
+    private RecyclerView chatRecyclerView;
+    private ChatAdapter chatAdapter;
+    private List<ChatMessage> messages;
+    private GeminiAPI geminiAPI;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        editText = findViewById(R.id.editText);
+        // Initialize views
         hindiTextView = findViewById(R.id.hindiTextView);
         hinglishTextView = findViewById(R.id.hinglishTextView);
         speakButton = findViewById(R.id.speakButton);
         listenButton = findViewById(R.id.listenButton);
-        languageButton = findViewById(R.id.languageButton);
+        chatRecyclerView = findViewById(R.id.chatRecyclerView);
 
-        // Configure EditText for hardware keyboard
-        editText.setShowSoftInputOnFocus(true);
-        editText.setRawInputType(android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE);
-        editText.setImeOptions(android.view.inputmethod.EditorInfo.IME_ACTION_DONE | android.view.inputmethod.EditorInfo.IME_FLAG_NO_EXTRACT_UI);
-        
-        // Disable suggestions
-        editText.setInputType(android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE | android.text.InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            editText.setImportantForAutofill(View.IMPORTANT_FOR_AUTOFILL_NO);
-        }
+        // Initialize chat
+        messages = new ArrayList<>();
+        chatAdapter = new ChatAdapter(messages);
+        chatRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        chatRecyclerView.setAdapter(chatAdapter);
 
-        // Initialize language button text
-        updateLanguageButtonText();
-
-        // Set up language button click
-        languageButton.setOnClickListener(v -> {
-            Toast.makeText(MainActivity.this, "Always showing both Hindi and Hinglish translations", Toast.LENGTH_SHORT).show();
-        });
-
-        // Initialize Speech Recognizer
-        if (SpeechRecognizer.isRecognitionAvailable(this)) {
-            speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
-            speechRecognizer.setRecognitionListener(new RecognitionListener() {
-                @Override
-                public void onReadyForSpeech(Bundle bundle) {
-                    Toast.makeText(MainActivity.this, "Listening...", Toast.LENGTH_SHORT).show();
-                }
-
-                @Override
-                public void onBeginningOfSpeech() {}
-
-                @Override
-                public void onRmsChanged(float v) {}
-
-                @Override
-                public void onBufferReceived(byte[] bytes) {}
-
-                @Override
-                public void onEndOfSpeech() {
-                    isListening = false;
-                    listenButton.setText("Start Listening");
-                }
-
-                @Override
-                public void onError(int error) {
-                    isListening = false;
-                    listenButton.setText("Start Listening");
-                    String message;
-                    switch (error) {
-                        case SpeechRecognizer.ERROR_AUDIO:
-                            message = "Audio recording error";
-                            break;
-                        case SpeechRecognizer.ERROR_CLIENT:
-                            message = "Client side error";
-                            break;
-                        case SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS:
-                            message = "Insufficient permissions";
-                            break;
-                        case SpeechRecognizer.ERROR_NETWORK:
-                            message = "Network error";
-                            break;
-                        case SpeechRecognizer.ERROR_NETWORK_TIMEOUT:
-                            message = "Network timeout";
-                            break;
-                        case SpeechRecognizer.ERROR_NO_MATCH:
-                            message = "No speech input";
-                            break;
-                        case SpeechRecognizer.ERROR_RECOGNIZER_BUSY:
-                            message = "Recognition service busy";
-                            break;
-                        case SpeechRecognizer.ERROR_SERVER:
-                            message = "Server error";
-                            break;
-                        case SpeechRecognizer.ERROR_SPEECH_TIMEOUT:
-                            message = "No speech input";
-                            break;
-                        default:
-                            message = "Unknown error occurred";
-                            break;
-                    }
-                    Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show();
-                }
-
-                @Override
-                public void onResults(Bundle bundle) {
-                    ArrayList<String> matches = bundle.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-                    if (matches != null && !matches.isEmpty()) {
-                        String text = matches.get(0);
-                        hinglishTextView.setText(text);
-                    }
-                }
-
-                @Override
-                public void onPartialResults(Bundle bundle) {
-                    ArrayList<String> matches = bundle.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-                    if (matches != null && !matches.isEmpty()) {
-                        String text = matches.get(0);
-                        hinglishTextView.setText(text);
-                    }
-                }
-
-                @Override
-                public void onEvent(int i, Bundle bundle) {}
-            });
-        } else {
-            Toast.makeText(this, "Speech recognition not available on this device", Toast.LENGTH_SHORT).show();
-            listenButton.setEnabled(false);
-        }
-
-        // Set up listen button
-        listenButton.setOnClickListener(v -> {
-            if (checkPermission()) {
-                if (!isListening) {
-                    startListening();
-                } else {
-                    stopListening();
-                }
-            } else {
-                requestPermission();
-            }
-        });
+        // Initialize Gemini API
+        geminiAPI = new GeminiAPI();
 
         // Initialize Text to Speech
         textToSpeech = new TextToSpeech(this, status -> {
@@ -183,13 +65,25 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        // Set up listen button
+        listenButton.setOnClickListener(v -> {
+            if (checkPermission()) {
+                startListening();
+            } else {
+                requestPermission();
+            }
+        });
+
         // Set up speak button
         speakButton.setOnClickListener(v -> {
-            String text = editText.getText().toString();
+            String text = hinglishTextView.getText().toString();
             if (!text.isEmpty()) {
                 textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null, null);
             }
         });
+
+        // Add welcome message
+        addBotMessage("नमस्ते! मैं आपकी कैसे मदद कर सकता हूं?", "Namaste! Main aapki kaise madad kar sakta hoon?");
     }
 
     private void startListening() {
@@ -205,36 +99,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void stopListening() {
-        isListening = false;
-        listenButton.setText("Start Listening");
-        speechRecognizer.stopListening();
-    }
-
-    private boolean checkPermission() {
-        return ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) 
-                == PackageManager.PERMISSION_GRANTED;
-    }
-
-    private void requestPermission() {
-        ActivityCompat.requestPermissions(this, 
-                new String[]{Manifest.permission.RECORD_AUDIO}, 
-                PERMISSION_REQUEST_CODE);
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, 
-            @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == PERMISSION_REQUEST_CODE) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                startListening();
-            } else {
-                Toast.makeText(this, "Permission Denied", Toast.LENGTH_SHORT).show();
-            }
-        }
-    }
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -242,31 +106,75 @@ public class MainActivity extends AppCompatActivity {
             ArrayList<String> results = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
             if (results != null && !results.isEmpty()) {
                 String spokenText = results.get(0);
-                Log.d("SpeechApp", "Spoken text: " + spokenText);
-                
-                // Always show both Hindi and Hinglish
-                String devanagari = transliterateToHindi(spokenText);
-                Log.d("SpeechApp", "Devanagari: " + devanagari);
-                
-                // Set text on UI thread
-                final String finalDevanagari = devanagari;
-                runOnUiThread(() -> {
-                    hindiTextView.setText(finalDevanagari);
-                    hinglishTextView.setText(spokenText);
-                    Toast.makeText(MainActivity.this, 
-                        "Hindi: " + finalDevanagari + "\nHinglish: " + spokenText, 
-                        Toast.LENGTH_LONG).show();
-                });
+                processUserInput(spokenText);
             }
         }
     }
 
-    private void updateLanguageButtonText() {
-        languageButton.setText("Mode: Voice to Hindi & Hinglish");
-        Toast.makeText(MainActivity.this, "Speak in any language - Will show both Hindi and Hinglish", Toast.LENGTH_SHORT).show();
+    private void processUserInput(String spokenText) {
+        // Convert to Hindi and add to chat
+        String hindiText = transliterateToHindi(spokenText);
+        addUserMessage(hindiText, spokenText);
+
+        // Get response from Gemini
+        geminiAPI.generateResponse(spokenText, new GeminiAPI.GeminiCallback() {
+            @Override
+            public void onResponse(String response) {
+                // Convert bot response to Hindi
+                String botHindiText = transliterateToHindi(response);
+                addBotMessage(botHindiText, response);
+                
+                // Speak the response
+                textToSpeech.speak(response, TextToSpeech.QUEUE_FLUSH, null, null);
+            }
+
+            @Override
+            public void onError(String error) {
+                Toast.makeText(MainActivity.this, "Error: " + error, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
-    // Helper method to transliterate English (romanized) text to Hindi
+    private void addUserMessage(String hindiText, String hinglishText) {
+        ChatMessage message = new ChatMessage(hinglishText, hindiText, hinglishText, ChatMessage.TYPE_USER);
+        runOnUiThread(() -> {
+            chatAdapter.addMessage(message);
+            chatRecyclerView.smoothScrollToPosition(messages.size() - 1);
+            hindiTextView.setText(hindiText);
+            hinglishTextView.setText(hinglishText);
+        });
+    }
+
+    private void addBotMessage(String hindiText, String hinglishText) {
+        ChatMessage message = new ChatMessage(hinglishText, hindiText, hinglishText, ChatMessage.TYPE_BOT);
+        runOnUiThread(() -> {
+            chatAdapter.addMessage(message);
+            chatRecyclerView.smoothScrollToPosition(messages.size() - 1);
+            hindiTextView.setText(hindiText);
+            hinglishTextView.setText(hinglishText);
+        });
+    }
+
+    private boolean checkPermission() {
+        return ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) 
+            == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private void requestPermission() {
+        ActivityCompat.requestPermissions(this, 
+            new String[]{Manifest.permission.RECORD_AUDIO}, 
+            PERMISSION_REQUEST_CODE);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (textToSpeech != null) {
+            textToSpeech.stop();
+            textToSpeech.shutdown();
+        }
+    }
+
     private String transliterateToHindi(String englishText) {
         Map<String, String> reverseTranslitMap = new HashMap<>();
         
@@ -413,17 +321,5 @@ public class MainActivity extends AppCompatActivity {
             .replace("्ं", "ं");
             
         return finalText;
-    }
-
-    @Override
-    protected void onDestroy() {
-        if (textToSpeech != null) {
-            textToSpeech.stop();
-            textToSpeech.shutdown();
-        }
-        if (speechRecognizer != null) {
-            speechRecognizer.destroy();
-        }
-        super.onDestroy();
     }
 }
