@@ -1,4 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Speech App</string>
+    <string name="settings_api_key_title">Gemini API Key</string>
+    <string name="settings_api_key_summary">Enter your Gemini API key</string>
+    <string name="settings_debug_mode_title">Debug Mode</string>
+    <string name="settings_debug_mode_summary">Show debug information</string>
+    <string name="settings_language_title">Language</string>
+    <string name="settings_language_summary">Select response language</string>
+    
+    <string-array name="language_entries">
+        <item>English</item>
+        <item>Hindi</item>
+        <item>Hinglish</item>
+    </string-array>
+    
+    <string-array name="language_values">
+        <item>english</item>
+        <item>hindi</item>
+        <item>hinglish</item>
+    </string-array>
 </resources>

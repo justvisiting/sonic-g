@@ -29,6 +29,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String PREFS_NAME = "SpeechAppPrefs";
     private static final String API_KEY_PREF = "gemini_api_key";
     private static final String DEBUG_MODE_PREF = "debug_mode";
+    private static final String LANGUAGE_PREF = "language";
 
     private EditText chatInput;
     private ImageButton sendButton;
@@ -40,6 +41,7 @@ public class MainActivity extends AppCompatActivity {
     private long lastEnterTime = 0;
     private static final long DOUBLE_ENTER_THRESHOLD = 500; // milliseconds
     private boolean lastKeyWasEnter = false;
+    private String currentLanguage = "english";
 
     private TabLayout tabLayout;
     private ViewPager2 viewPager;
@@ -50,6 +52,11 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
+        // Load preferences
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        currentLanguage = prefs.getString(LANGUAGE_PREF, "english");
+        
         setContentView(R.layout.activity_main);
         mainHandler = new Handler(Looper.getMainLooper());
 
@@ -80,20 +87,15 @@ public class MainActivity extends AppCompatActivity {
         ).attach();
 
         // Check debug mode
-        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         isDebugMode = prefs.getBoolean(DEBUG_MODE_PREF, false);
         Log.d(TAG, "Debug mode is: " + isDebugMode);
         
         // Always show tabs, but only show debug tab if debug mode is enabled
-        if (!isDebugMode) {
-            viewPager.setCurrentItem(0);
-            tabLayout.getTabAt(1).view.setVisibility(View.GONE);
-        } else {
-            tabLayout.getTabAt(1).view.setVisibility(View.VISIBLE);
-        }
+        updateDebugTabVisibility();
 
-        // Initialize Gemini API
-        geminiAPI = new GeminiAPI(this);
+        // Initialize Gemini API with language preference
+        geminiAPI = new GeminiAPI(this, debugFragment);
+        geminiAPI.setLanguage(currentLanguage);
 
         // Set up chat input
         chatInput.setOnEditorActionListener((v, actionId, event) -> {
@@ -129,8 +131,9 @@ public class MainActivity extends AppCompatActivity {
         checkApiKey();
 
         // Add welcome message
-        addBotMessage("नमस्ते! मैं आपकी कैसे मदद कर सकता हूं? क्विज़ शुरू करने के लिए 'Start Quiz' बटन दबाएं।", 
-                     "Namaste! Main aapki kaise madad kar sakta hoon? Quiz shuru karne ke liye 'Start Quiz' button dabayen.");
+        String message = "नमस्ते! मैं आपकी कैसे मदद कर सकता हूं? क्विज़ शुरू करने के लिए 'Start Quiz' बटन दबाएं।";
+        String hindiMessage = transliterateToHindi(message);
+        addBotMessage(hindiMessage, message);
     }
 
     @Override
@@ -244,26 +247,6 @@ public class MainActivity extends AppCompatActivity {
         addBotMessage(hindiMessage, message);
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == SETTINGS_REQUEST_CODE && resultCode == RESULT_OK) {
-            // Check if debug mode changed
-            SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-            boolean newDebugMode = prefs.getBoolean(DEBUG_MODE_PREF, false);
-            Log.d(TAG, "Debug mode changed from " + isDebugMode + " to " + newDebugMode);
-            if (newDebugMode != isDebugMode) {
-                isDebugMode = newDebugMode;
-                if (!isDebugMode) {
-                    viewPager.setCurrentItem(0);
-                    tabLayout.getTabAt(1).view.setVisibility(View.GONE);
-                } else {
-                    tabLayout.getTabAt(1).view.setVisibility(View.VISIBLE);
-                }
-            }
-        }
-    }
-
     private void processUserInput(String text) {
         Log.d(TAG, "Processing user input: " + text);
         
@@ -274,9 +257,18 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        // Convert to Hindi and add to chat
-        String hindiText = transliterateToHindi(text);
-        addUserMessage(hindiText, text);
+        // Add user message based on language preference
+        switch (currentLanguage) {
+            case "hindi":
+                addUserMessage(transliterateToHindi(text), text);
+                break;
+            case "hinglish":
+                addUserMessage(text, text); // Keep original Hinglish text
+                break;
+            default: // english
+                addUserMessage(text, text);
+                break;
+        }
 
         // Get response from Gemini
         geminiAPI.generateResponse(text, new GeminiAPI.GeminiCallback() {
@@ -292,9 +284,18 @@ public class MainActivity extends AppCompatActivity {
                         updateQuizMenuItems("stopped");
                     }
                     
-                    // Convert bot response to Hindi
-                    String botHindiText = transliterateToHindi(response);
-                    addBotMessage(botHindiText, response);
+                    // Process response based on language preference
+                    switch (currentLanguage) {
+                        case "hindi":
+                            addBotMessage(transliterateToHindi(response), response);
+                            break;
+                        case "hinglish":
+                            addBotMessage(convertToHinglish(response), response);
+                            break;
+                        default: // english
+                            addBotMessage(response, response);
+                            break;
+                    }
                 });
             }
 
@@ -306,6 +307,19 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
         });
+    }
+
+    private String convertToHinglish(String text) {
+        // Simple Hinglish conversion rules
+        return text.replaceAll("Hello", "Helo")
+                  .replaceAll("Please", "Plz")
+                  .replaceAll("Thank you", "Thanku")
+                  .replaceAll("Good", "Gud")
+                  .replaceAll("What", "Wat")
+                  .replaceAll("You", "U")
+                  .replaceAll("Are", "R")
+                  .replaceAll("Why", "Y")
+                  .replaceAll("Okay", "Ok");
     }
 
     private void addUserMessage(String hindiText, String hinglishText) {
@@ -470,5 +484,49 @@ public class MainActivity extends AppCompatActivity {
             .replace("्ं", "ं");
             
         return finalText;
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == SETTINGS_REQUEST_CODE) {
+            // Reload preferences
+            SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+            String newLanguage = prefs.getString(LANGUAGE_PREF, "english");
+            if (!newLanguage.equals(currentLanguage)) {
+                currentLanguage = newLanguage;
+                // Update Gemini API language
+                geminiAPI.setLanguage(currentLanguage);
+                // Add language change message
+                String message = "Switched to " + currentLanguage + " mode";
+                switch (currentLanguage) {
+                    case "hindi":
+                        addBotMessage(transliterateToHindi(message), message);
+                        break;
+                    case "hinglish":
+                        addBotMessage(convertToHinglish(message), message);
+                        break;
+                    default:
+                        addBotMessage(message, message);
+                        break;
+                }
+            }
+            
+            // Check debug mode changes
+            boolean newDebugMode = prefs.getBoolean(DEBUG_MODE_PREF, false);
+            if (newDebugMode != isDebugMode) {
+                isDebugMode = newDebugMode;
+                updateDebugTabVisibility();
+            }
+        }
+    }
+
+    private void updateDebugTabVisibility() {
+        if (!isDebugMode) {
+            viewPager.setCurrentItem(0);
+            tabLayout.getTabAt(1).view.setVisibility(View.GONE);
+        } else {
+            tabLayout.getTabAt(1).view.setVisibility(View.VISIBLE);
+        }
     }
 }

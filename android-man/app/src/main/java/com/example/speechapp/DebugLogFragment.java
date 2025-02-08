@@ -11,7 +11,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 public class DebugLogFragment extends Fragment {
-    private TextView debugLogView;
+    private TextView logTextView;
     private ScrollView scrollView;
     private StringBuilder logBuilder = new StringBuilder();
 
@@ -19,7 +19,7 @@ public class DebugLogFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_debug, container, false);
-        debugLogView = view.findViewById(R.id.debugLogView);
+        logTextView = view.findViewById(R.id.logTextView);
         scrollView = view.findViewById(R.id.scrollView);
         return view;
     }
@@ -37,17 +37,39 @@ public class DebugLogFragment extends Fragment {
         updateLogDisplay();
     }
 
+    public void appendLog(String text) {
+        if (getActivity() == null) return;
+        
+        getActivity().runOnUiThread(() -> {
+            logBuilder.append(text).append("\n");
+            if (logTextView != null) {
+                logTextView.setText(logBuilder.toString());
+                // Scroll to bottom
+                scrollView.post(() -> scrollView.fullScroll(View.FOCUS_DOWN));
+            }
+        });
+    }
+
     public void clearLog() {
-        logBuilder.setLength(0);
-        updateLogDisplay();
+        if (getActivity() == null) return;
+        
+        getActivity().runOnUiThread(() -> {
+            logBuilder.setLength(0);
+            if (logTextView != null) {
+                logTextView.setText("");
+            }
+        });
     }
 
     private void updateLogDisplay() {
-        if (debugLogView != null && isAdded()) {
-            requireActivity().runOnUiThread(() -> {
-                debugLogView.setText(logBuilder.toString());
-                scrollView.post(() -> scrollView.fullScroll(ScrollView.FOCUS_DOWN));
-            });
-        }
+        if (getActivity() == null) return;
+        
+        getActivity().runOnUiThread(() -> {
+            if (logTextView != null) {
+                logTextView.setText(logBuilder.toString());
+                // Scroll to bottom
+                scrollView.post(() -> scrollView.fullScroll(View.FOCUS_DOWN));
+            }
+        });
     }
 }
