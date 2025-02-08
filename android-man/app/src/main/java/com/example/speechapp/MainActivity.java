@@ -221,6 +221,12 @@ public class MainActivity extends AppCompatActivity {
             public void onResponse(String response) {
                 Log.d("MainActivity", "Got Gemini response");
                 runOnUiThread(() -> {
+                    // Check if quiz is ending
+                    if (isQuizEnding(response)) {
+                        Log.d("MainActivity", "Quiz is ending");
+                        quizMode = false;
+                    }
+                    
                     // Convert bot response to Hindi
                     String botHindiText = transliterateToHindi(response);
                     addBotMessage(botHindiText, response);
@@ -244,6 +250,16 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
         });
+    }
+
+    private boolean isQuizEnding(String response) {
+        String lowerResponse = response.toLowerCase();
+        return lowerResponse.contains("quiz is over") || 
+               lowerResponse.contains("quiz has ended") ||
+               lowerResponse.contains("end of quiz") ||
+               lowerResponse.contains("quiz complete") ||
+               lowerResponse.contains("quiz finished") ||
+               lowerResponse.contains("thank you for taking the quiz");
     }
 
     private void addUserMessage(String hindiText, String hinglishText) {

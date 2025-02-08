@@ -28,7 +28,11 @@ public class GeminiAPI {
         "4. Keep questions varied but simple enough to answer verbally\n" +
         "5. Keep all responses brief and conversational\n" +
         "6. Track question number and mention it (e.g., 'Question 3:')\n" +
-        "7. NEVER generate both question and answer in the same response\n\n" +
+        "7. NEVER generate both question and answer in the same response\n" +
+        "8. After 5 questions, end the quiz with a friendly message containing one of these phrases:\n" +
+        "   - 'Quiz is over'\n" +
+        "   - 'Thank you for taking the quiz'\n" +
+        "   - 'Quiz complete'\n\n" +
         "Current conversation:\n";
     
     private final Context context;
