@@ -6,6 +6,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -30,7 +32,6 @@ public class MainActivity extends AppCompatActivity {
 
     private Button startQuizButton;
     private Button stopQuizButton;
-    private Button settingsButton;
     private EditText chatInput;
     private ImageButton sendButton;
     private boolean quizMode = false;
@@ -59,7 +60,6 @@ public class MainActivity extends AppCompatActivity {
         // Initialize views
         startQuizButton = findViewById(R.id.startQuizButton);
         stopQuizButton = findViewById(R.id.stopQuizButton);
-        settingsButton = findViewById(R.id.settingsButton);
         chatInput = findViewById(R.id.chatInput);
         sendButton = findViewById(R.id.sendButton);
         tabLayout = findViewById(R.id.tabLayout);
@@ -152,18 +152,28 @@ public class MainActivity extends AppCompatActivity {
             stopQuizButton.setVisibility(View.GONE);
         });
 
-        // Set up settings button
-        settingsButton.setOnClickListener(v -> {
-            Intent intent = new Intent(this, SettingsActivity.class);
-            startActivityForResult(intent, SETTINGS_REQUEST_CODE);
-        });
-
         // Check if API key is set
         checkApiKey();
 
         // Add welcome message
         addBotMessage("नमस्ते! मैं आपकी कैसे मदद कर सकता हूं? क्विज़ शुरू करने के लिए 'Start Quiz' बटन दबाएं।", 
                      "Namaste! Main aapki kaise madad kar sakta hoon? Quiz shuru karne ke liye 'Start Quiz' button dabayen.");
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.toolbar_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.action_settings) {
+            Intent intent = new Intent(this, SettingsActivity.class);
+            startActivityForResult(intent, SETTINGS_REQUEST_CODE);
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     @Override

@@ -13,6 +13,7 @@ drawable chat_bubble_background
 drawable chat_input_background
 drawable debug_log_background
 drawable mic_background
+id action_settings
 id apiKeyInput
 id bottomNavigation
 id chatInput
@@ -32,7 +33,6 @@ id navigation_chat
 id navigation_debug
 id saveButton
 id sendButton
-id settingsButton
 id startQuizButton
 id statusText
 id stopQuizButton
@@ -51,6 +51,7 @@ layout item_message_bot
 layout item_message_user
 layout mic_dialog
 menu bottom_nav_menu
+menu toolbar_menu
 mipmap ic_launcher
 mipmap ic_launcher_round
 string app_name
