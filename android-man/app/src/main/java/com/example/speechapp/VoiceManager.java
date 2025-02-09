@@ -2,6 +2,7 @@ package com.example.speechapp;
 
 import android.content.Context;
 import android.content.Intent;
+import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -9,7 +10,7 @@ import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.util.Log;
-import android.media.AudioManager;
+import java.util.ArrayList;
 
 public class VoiceManager implements RecognitionListener {
     private static final String TAG = "VoiceManager";
@@ -55,18 +56,21 @@ public class VoiceManager implements RecognitionListener {
     }
 
     private void startNewRecognition() {
+        Log.d(TAG, "Starting new recognition");
         lastPartialResult = "";
+        
+        
         initializeSpeechRecognizer();
 
         Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
         
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, supportedLanguages);
-        intent.putExtra(RecognizerIntent.EXTRA_ENABLE_LANGUAGE_SWITCH, supportedLanguages);
+        //intent.putExtra(RecognizerIntent.EXTRA_ENABLE_LANGUAGE_SWITCH, supportedLanguages);
         intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1);
         intent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true);
         intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, context.getPackageName());
-        intent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 5000);
+        intent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 10000);
         //intent.putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true);
 
         try {
@@ -75,6 +79,7 @@ public class VoiceManager implements RecognitionListener {
             Log.e(TAG, "Error starting speech recognition", e);
             handleError("Error starting speech recognition", -1, false, true, false);
         }
+        
     }
 
     public void startListening() {
@@ -88,6 +93,7 @@ public class VoiceManager implements RecognitionListener {
     }
 
     public void stopListening() {
+        Log.d(TAG, "Stopping listening");
         if (!isListening) return;
         isListening = false;
         if (speechRecognizer != null) {
@@ -115,6 +121,7 @@ public class VoiceManager implements RecognitionListener {
     }
 
     public void toggleListening() {
+        Log.d(TAG, "Toggle listening");
         if (isListening) {
             stopListening();
         } else {
@@ -122,18 +129,24 @@ public class VoiceManager implements RecognitionListener {
         }
     }
 
+    private void restartRecognition() {
+        if (speechRecognizer != null) {
+            speechRecognizer.destroy();
+            speechRecognizer = null;
+        }
+
+        handler.postDelayed(this::startNewRecognition, 10);
+    }
+
     private void handleError(String message, int messageCode, boolean canRestart, boolean shouldReinitSpeechRecognizer, boolean wasSpeechTimeout){ 
         boolean shouldShowErrorToUser = true;
-
+        if (wasSpeechTimeout) {
+            return; 
+        }
+        
         if (canRestart && isListening && retryCount < MAX_RETRIES) {
-            if (!(wasSpeechTimeout || messageCode == SpeechRecognizer.ERROR_SERVER_DISCONNECTED)) {
-                retryCount++;
-            }
             if (shouldReinitSpeechRecognizer) {
-                speechRecognizer.destroy();
-                speechRecognizer = null;
-                //startNewRecognition();
-                handler.postDelayed(this::startNewRecognition, 100);
+                restartRecognition(); 
             }
         } else {
             //if (message.length() > 0) {
@@ -163,23 +176,7 @@ public class VoiceManager implements RecognitionListener {
         }
     }
 
-    @Override
-    public void onLanguageDetection(Bundle results) {
-        Log.w(TAG, "onLanguageDetection: " + results);
-        String detectedLanguage = results.getString(SpeechRecognizer.DETECTED_LANGUAGE);
-        if (detectedLanguage == null) return;
-
-        int confidence = results.getInt(SpeechRecognizer.LANGUAGE_DETECTION_CONFIDENCE_LEVEL, -1);
-        if (confidence > SpeechRecognizer.LANGUAGE_DETECTION_CONFIDENCE_LEVEL_HIGHLY_CONFIDENT) {
-            if (detectedLanguage.startsWith("hi-")) {
-                detectedLanguage = "hinglish";
-            } else if (detectedLanguage.startsWith("en-")) {
-                detectedLanguage = "english";
-            }
-
-            callback.onLanguageDetected(detectedLanguage);
-        }
-    }
+    
 
 
     @Override
@@ -187,15 +184,12 @@ public class VoiceManager implements RecognitionListener {
 
     @Override
     public void onEndOfSpeech() {
-        //callback.onStatusChanged(VoiceInputView.VoiceStatus.PROCESSING);
-        if (isListening) {
-            startNewRecognition();
-        }
+        Log.d(TAG, "End of speech");
     }
 
     @Override
     public void onError(int error) {
-        Log.e(TAG, "Speech recognition error: " + error);
+        
         // Only handle error if we're still in listening mode
         if (!isListening) return;
 
@@ -206,18 +200,12 @@ public class VoiceManager implements RecognitionListener {
         boolean shouldPreferOfflineMode = false;
         switch (error) {
             case SpeechRecognizer.ERROR_NO_MATCH:
-                // No speech detected, just restart without counting as retry
-                errorMessage = "";
-                canRestart = true;
-                wasSpeechTimeout = true;
-                shouldReinitSpeechRecognizer = true;
-                break;
             case SpeechRecognizer.ERROR_SPEECH_TIMEOUT:
                 // Speech timeout, just restart without counting as retry
                 errorMessage = "";
-                canRestart = true;
+                canRestart = false;
                 wasSpeechTimeout = true;
-                shouldReinitSpeechRecognizer = true;
+                shouldReinitSpeechRecognizer = false;
                 break;
             case SpeechRecognizer.ERROR_SERVER_DISCONNECTED:
                 // Server disconnected, try to restart
@@ -244,30 +232,57 @@ public class VoiceManager implements RecognitionListener {
                 shouldReinitSpeechRecognizer = false;
                 break;
         }
+
+        Log.e(TAG, "Speech recognition error. code: " + error + ", msg: " + errorMessage);
         handleError(errorMessage, error, canRestart, shouldReinitSpeechRecognizer, wasSpeechTimeout);
     }
 
     @Override
     public void onResults(Bundle results) {
-        if (results != null && results.containsKey(SpeechRecognizer.RESULTS_RECOGNITION)) {
-            String text = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION).get(0);
-            callback.onSpeechResult(text);
-            if (isListening) {
-                startNewRecognition();
-            }
+        Log.d(TAG, "Got speech results");
+        //callback.onSpeechResult(text);
+        if (isListening) {
+            restartRecognition();
         }
     }
 
     @Override
     public void onPartialResults(Bundle partialResults) {
-        if (partialResults != null && partialResults.containsKey(SpeechRecognizer.RESULTS_RECOGNITION)) {
-            String partialText = partialResults.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION).get(0);
-            String newText = partialText.substring(lastPartialResult.length()).trim();
-            sessionPartialText += newText;
+        try {
+            if (partialResults == null || !partialResults.containsKey(SpeechRecognizer.RESULTS_RECOGNITION)) {
+                return;
+            }
+
+            ArrayList<String> resultList = partialResults.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+            if (resultList == null || resultList.isEmpty()) {
+                return;
+            }
+
+            String partialText = resultList.get(0);
+            if (partialText == null || partialText.isEmpty()) {
+                return;
+            }
+
+            Log.d(TAG, "Partial text: " + partialText);
+            String newText;
+
+            // Handle cases where the new partial text might be shorter
+            if (partialText.length() >= lastPartialResult.length() && partialText.startsWith(lastPartialResult)) {
+                // Normal case - append new text
+                newText = partialText.substring(lastPartialResult.length()).trim();
+            } else {
+                // Text changed or reset - use new text
+                newText = partialText.trim();
+            }
+            
+            sessionPartialText += " " + newText;
+
             if (!newText.isEmpty()) {
-                callback.onPartialSpeechResult(sessionPartialText, newText);
+                callback.onPartialSpeechResult(sessionPartialText.trim(), newText);
                 lastPartialResult = partialText;
             }
+        } catch (Exception e) {
+            Log.e(TAG, "Error processing partial results", e);
         }
     }
 

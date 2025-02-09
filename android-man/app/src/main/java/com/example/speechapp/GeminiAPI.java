@@ -19,13 +19,15 @@ import okhttp3.Response;
 
 public class GeminiAPI {
     private static final String TAG = "GeminiAPI";
-    private static final String API_KEY_PREF = "gemini_api_key";
+    private static final String PREF_NAME = "GeminiPrefs";
+    private static final String KEY_API_KEY = "api_key";
     private static final String QUIZ_PROMPT_START = "You are a friendly quiz master. ";
     private static final String QUIZ_PROMPT_END = " Start a fun quiz about general knowledge. Ask one question at a time. " +
-            "Wait for the user's answer before proceeding to the next question. " +
+            "Wait for the user's answer before proceeding to the next question. json_response schema {'explaination': string, 'score': int, 'rating': string, 'reason': string, encouring_feedback': string, 'next_question': string} " +
             "Give encouraging feedback for both correct and incorrect answers. " ;
             
     
+    private String apiKey;
     private final Context context;
     private final ExecutorService executor;
     private final Handler mainHandler;
@@ -42,11 +44,29 @@ public class GeminiAPI {
     public GeminiAPI(Context context, DebugLogFragment debugLogFragment) {
         this.context = context;
         this.debugLogFragment = debugLogFragment;
+        // Load saved API key
+        SharedPreferences prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+        this.apiKey = prefs.getString(KEY_API_KEY, null);
         this.executor = Executors.newSingleThreadExecutor();
         this.mainHandler = new Handler(Looper.getMainLooper());
         this.conversationHistory = new StringBuilder();
         this.client = new OkHttpClient();
         updateSystemPrompt();
+    }
+
+    public void setApiKey(String apiKey) {
+        this.apiKey = apiKey;
+        // Save API key
+        SharedPreferences prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+        prefs.edit().putString(KEY_API_KEY, apiKey).apply();
+    }
+
+    public String getApiKey() {
+        return apiKey;
+    }
+
+    public boolean hasApiKey() {
+        return apiKey != null && !apiKey.isEmpty();
     }
 
     private void updateSystemPrompt() {
@@ -72,11 +92,6 @@ public class GeminiAPI {
         }
     }
 
-    private String getApiKey() {
-        SharedPreferences prefs = context.getSharedPreferences("SpeechAppPrefs", Context.MODE_PRIVATE);
-        return prefs.getString(API_KEY_PREF, "");
-    }
-
     public void startNewQuiz(GeminiCallback callback) {
         conversationHistory = new StringBuilder();
         updateSystemPrompt();
@@ -84,8 +99,7 @@ public class GeminiAPI {
     }
 
     public void generateResponse(String userInput, GeminiCallback callback) {
-        String apiKey = getApiKey();
-        if (apiKey.isEmpty()) {
+        if (!hasApiKey()) {
             if (callback != null) {
                 callback.onError("API key not set. Please set it in settings.");
             }
@@ -130,7 +144,7 @@ public class GeminiAPI {
                     .put("topP", 1)
                     .put("maxOutputTokens", 800));
 
-                String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=" + apiKey;
+                String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + apiKey;
                 
                 // Log the request details
                 if (debugLogFragment != null) {

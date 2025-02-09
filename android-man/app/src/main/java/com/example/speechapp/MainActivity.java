@@ -16,6 +16,7 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Toast;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.preference.PreferenceManager;
@@ -105,7 +106,7 @@ public class MainActivity extends AppCompatActivity {
             public void onSpeechResult(String fullText) {
                 runOnUiThread(() -> {
                     chatInput.setText(fullText);
-                    processUserInput(fullText);
+                    //processUserInput(fullText);
                     voiceInputView.stopAnimation();
                 });
             }
@@ -171,6 +172,11 @@ public class MainActivity extends AppCompatActivity {
 
         // Set language preference in Gemini API
         geminiAPI.setLanguage(currentLanguage);
+
+        // Check for API key
+        if (!geminiAPI.hasApiKey()) {
+            showApiKeyDialog();
+        }
 
         Log.d(TAG, "Debug mode is: " + isDebugMode);
     }
@@ -665,5 +671,29 @@ public class MainActivity extends AppCompatActivity {
         if (voiceManager != null) {
             voiceManager.stopListening();
         }
+    }
+
+    private void showApiKeyDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Enter Gemini API Key");
+
+        final EditText input = new EditText(this);
+        input.setInputType(android.text.InputType.TYPE_CLASS_TEXT);
+        String currentKey = geminiAPI.getApiKey();
+        if (currentKey != null) {
+            input.setText(currentKey);
+        }
+        builder.setView(input);
+
+        builder.setPositiveButton("OK", (dialog, which) -> {
+            String apiKey = input.getText().toString().trim();
+            if (!apiKey.isEmpty()) {
+                geminiAPI.setApiKey(apiKey);
+                Toast.makeText(MainActivity.this, "API key saved", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
+        builder.show();
     }
 }
