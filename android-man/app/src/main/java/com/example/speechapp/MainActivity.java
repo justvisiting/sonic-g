@@ -127,6 +127,7 @@ public class MainActivity extends AppCompatActivity {
                 runOnUiThread(() -> {
                     updateMicButtonState(false);
                     // Don't hide the view here, let the status changes control visibility
+                    voiceInputView.stopAnimation();
                 });
             }
 
