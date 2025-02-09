@@ -577,13 +577,13 @@ public class MainActivity extends AppCompatActivity {
             // Add language change message
             String message = "Switched to " + newLanguage + " mode";
             switch (newLanguage) {
-                case "hindi":
-                    addBotMessage(transliterateToHindi(message), message);
-                    break;
-                case "hinglish":
-                    addBotMessage(convertToHinglish(
-                            transliterateToHindi(message)), message);
-                    break;
+                //case "hindi":
+                    //addBotMessage(transliterateToHindi(message), message);
+                  //  break;
+                //case "hinglish":
+                  //  addBotMessage(convertToHinglish(
+                    //        transliterateToHindi(message)), message);
+                    //break;
                 default:
                     addBotMessage(message, message);
                     break;
