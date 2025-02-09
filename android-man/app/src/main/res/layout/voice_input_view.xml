@@ -1,78 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:padding="8dp">
+    android:layout_width="40dp"
+    android:layout_height="40dp"
+    android:background="@drawable/circle_background">
 
     <LinearLayout
         android:id="@+id/voiceAnimationContainer"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:gravity="center"
-        android:background="@drawable/voice_bg"
-        android:padding="8dp"
-        android:visibility="gone">
+        android:layout_gravity="center"
+        android:orientation="horizontal"
+        android:padding="4dp">
 
-        <TextView
-            android:id="@+id/voiceStatusText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Listening..."
-            android:textColor="#4285F4"
-            android:textSize="14sp"
-            android:layout_marginBottom="8dp"/>
+        <View
+            android:id="@+id/voiceBar1"
+            android:layout_width="3dp"
+            android:layout_height="15dp"
+            android:layout_marginHorizontal="1dp"
+            android:background="@android:color/white" />
 
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="32dp"
-            android:orientation="horizontal"
-            android:gravity="center">
+        <View
+            android:id="@+id/voiceBar2"
+            android:layout_width="3dp"
+            android:layout_height="15dp"
+            android:layout_marginHorizontal="1dp"
+            android:background="@android:color/white" />
 
-            <View
-                android:id="@+id/voiceBar1"
-                android:layout_width="3dp"
-                android:layout_height="16dp"
-                android:layout_marginEnd="2dp"
-                android:background="#4285F4"/>
-
-            <View
-                android:id="@+id/voiceBar2"
-                android:layout_width="3dp"
-                android:layout_height="16dp"
-                android:layout_marginEnd="2dp"
-                android:background="#4285F4"/>
-
-            <View
-                android:id="@+id/voiceBar3"
-                android:layout_width="3dp"
-                android:layout_height="16dp"
-                android:layout_marginEnd="2dp"
-                android:background="#4285F4"/>
-
-            <View
-                android:id="@+id/voiceBar4"
-                android:layout_width="3dp"
-                android:layout_height="16dp"
-                android:layout_marginEnd="2dp"
-                android:background="#4285F4"/>
-
-            <View
-                android:id="@+id/voiceBar5"
-                android:layout_width="3dp"
-                android:layout_height="16dp"
-                android:background="#4285F4"/>
-
-        </LinearLayout>
-
-        <TextView
-            android:id="@+id/voiceTapText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Tap microphone to stop"
-            android:textColor="#757575"
-            android:textSize="10sp"
-            android:layout_marginTop="8dp"/>
+        <View
+            android:id="@+id/voiceBar3"
+            android:layout_width="3dp"
+            android:layout_height="15dp"
+            android:layout_marginHorizontal="1dp"
+            android:background="@android:color/white" />
 
     </LinearLayout>
 </FrameLayout>

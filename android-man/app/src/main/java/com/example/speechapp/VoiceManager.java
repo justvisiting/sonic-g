@@ -73,14 +73,15 @@ public class VoiceManager implements RecognitionListener {
     }
 
     public void startListening() {
-        if (!isListening || isProcessing) return;
+        if (isListening || isProcessing) return;
 
+        isListening = true;
         isProcessing = true;
         lastPartialResult = ""; // Reset for new session
         
         // Re-initialize speech recognizer to prevent client-side errors
         initializeSpeechRecognizer();
-        
+
         Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
         
@@ -89,48 +90,37 @@ public class VoiceManager implements RecognitionListener {
         intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1);
         intent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true);
         intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, context.getPackageName());
-        //intent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SPEECH, false);  // Allow pauses
-
+        //allow up to 5 sec pause before considering speech complete
+        intent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS, 5000);
 
         try {
             handler.post(() -> {
-                try {
-                    speechRecognizer.startListening(intent);
-                    callback.onListeningStarted();
-                    callback.onStatusChanged(VoiceInputView.VoiceStatus.LISTENING);
-                } catch (Exception e) {
-                    handleError("Error starting speech recognition: " + e.getMessage());
-                }
+                speechRecognizer.startListening(intent);
+                callback.onListeningStarted();
+                callback.onStatusChanged(VoiceInputView.VoiceStatus.LISTENING);
             });
         } catch (Exception e) {
-            handleError("Error starting speech recognition: " + e.getMessage());
+            Log.e(TAG, "Error starting speech recognition", e);
+            callback.onSpeechError("Error starting speech recognition");
+            callback.onStatusChanged(VoiceInputView.VoiceStatus.ERROR);
         }
-    }
-
-    private void handleError(String message) {
-        isProcessing = false;
-        callback.onSpeechError(message);
-        callback.onStatusChanged(VoiceInputView.VoiceStatus.ERROR);
-        stopListening();
     }
 
     public void stopListening() {
         isListening = false;
         isProcessing = false;
-        try {
+        if (speechRecognizer != null) {
             speechRecognizer.stopListening();
-        } catch (Exception e) {
-            Log.e(TAG, "Error stopping speech recognition", e);
+            speechRecognizer.cancel();
+            callback.onListeningStopped();
+            callback.onStatusChanged(VoiceInputView.VoiceStatus.IDLE);
         }
-        callback.onListeningStopped();
     }
 
     public void toggleListening() {
         if (isListening) {
             stopListening();
         } else {
-            isListening = true;
-            isProcessing = false;
             startListening();
         }
     }
@@ -152,6 +142,10 @@ public class VoiceManager implements RecognitionListener {
             textToSpeech = null;
         }
         handler.removeCallbacksAndMessages(null);
+    }
+
+    public boolean isListening() {
+        return isListening;
     }
 
     // Speech Recognition Listener methods

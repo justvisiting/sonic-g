@@ -38,7 +38,6 @@ public class MainActivity extends AppCompatActivity {
 
     private EditText chatInput;
     private ImageButton sendButton;
-    private ImageButton micButton;
     private VoiceInputView voiceInputView;
     private ChatFragment chatFragment;
     private DebugLogFragment debugFragment;
@@ -74,13 +73,19 @@ public class MainActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayShowTitleEnabled(false);
         }
 
-        // Initialize UI components
+        // Initialize UI elements
         chatInput = findViewById(R.id.chatInput);
         sendButton = findViewById(R.id.sendButton);
-        micButton = findViewById(R.id.micButton);
-        voiceInputView = findViewById(R.id.voiceInputView);
         viewPager = findViewById(R.id.viewPager);
         tabLayout = findViewById(R.id.tabLayout);
+
+        // Initialize voice input
+        voiceInputView = findViewById(R.id.voiceInputView);
+        voiceInputView.setOnClickListener(v -> {
+            if (voiceManager != null) {
+                voiceManager.toggleListening();
+            }
+        });
 
         // Initialize fragments
         chatFragment = new ChatFragment();
@@ -95,13 +100,13 @@ public class MainActivity extends AppCompatActivity {
                     chatInput.append(newText + " ");
                 });
             }
+
             @Override
             public void onSpeechResult(String fullText) {
                 runOnUiThread(() -> {
                     chatInput.setText(fullText);
                     processUserInput(fullText);
                     voiceInputView.stopAnimation();
-                    voiceInputView.setVisibility(View.GONE);
                 });
             }
 
@@ -109,15 +114,13 @@ public class MainActivity extends AppCompatActivity {
             public void onSpeechError(String error) {
                 runOnUiThread(() -> {
                     Toast.makeText(MainActivity.this, error, Toast.LENGTH_SHORT).show();
-                    updateMicButtonState(false);
+                    voiceInputView.setStatus(VoiceInputView.VoiceStatus.ERROR);
                 });
             }
 
             @Override
             public void onListeningStarted() {
                 runOnUiThread(() -> {
-                    updateMicButtonState(true);
-                    voiceInputView.setVisibility(View.VISIBLE);
                     voiceInputView.startAnimation();
                 });
             }
@@ -125,9 +128,14 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onListeningStopped() {
                 runOnUiThread(() -> {
-                    updateMicButtonState(false);
-                    // Don't hide the view here, let the status changes control visibility
                     voiceInputView.stopAnimation();
+                });
+            }
+
+            @Override
+            public void onStatusChanged(VoiceInputView.VoiceStatus status) {
+                runOnUiThread(() -> {
+                    voiceInputView.setStatus(status);
                 });
             }
 
@@ -136,31 +144,6 @@ public class MainActivity extends AppCompatActivity {
                 runOnUiThread(() -> {
                     if (!language.equals(currentLanguage)) {
                         updateLanguage(language);
-                    }        
-                    // Update UI based on detected language
-                });
-            }
-
-            @Override
-            public void onStatusChanged(VoiceInputView.VoiceStatus status) {
-                runOnUiThread(() -> {
-                    if (voiceInputView != null) {
-                        voiceInputView.setStatus(status);
-                        
-                        // Handle visibility based on status
-                        switch (status) {
-                            case LISTENING:
-                            case PROCESSING:
-                                voiceInputView.setVisibility(View.VISIBLE);
-                                break;
-                            case ERROR:
-                                // Show error briefly then hide
-                                voiceInputView.setVisibility(View.VISIBLE);
-                                new Handler().postDelayed(() -> {
-                                    voiceInputView.setVisibility(View.GONE);
-                                }, 2000);
-                                break;
-                        }
                     }
                 });
             }
@@ -197,10 +180,6 @@ public class MainActivity extends AppCompatActivity {
                 processUserInput(text);
                 chatInput.setText("");
             }
-        });
-
-        micButton.setOnClickListener(v -> {
-            voiceManager.toggleListening();
         });
 
         chatInput.setOnEditorActionListener((v, actionId, event) -> {
@@ -638,12 +617,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void updateMicButtonState(boolean isListening) {
-        micButton.setImageResource(isListening ? 
-            android.R.drawable.ic_media_pause : 
-            android.R.drawable.ic_btn_speak_now);
-    }
-
     private void requestPermissions() {
         String[] permissions = {
             Manifest.permission.RECORD_AUDIO
@@ -662,7 +635,6 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(this, "Voice input enabled", Toast.LENGTH_SHORT).show();
             } else {
                 Toast.makeText(this, "Voice input permission denied", Toast.LENGTH_SHORT).show();
-                micButton.setEnabled(false);
             }
         }
     }
@@ -678,6 +650,18 @@ public class MainActivity extends AppCompatActivity {
     public void updateVoiceAmplitude(float amplitude) {
         if (voiceInputView != null) {
             voiceInputView.updateWithAmplitude(amplitude);
+        }
+    }
+
+    private void startVoiceInput() {
+        if (voiceManager != null) {
+            voiceManager.startListening();
+        }
+    }
+
+    private void stopVoiceInput() {
+        if (voiceManager != null) {
+            voiceManager.stopListening();
         }
     }
 }

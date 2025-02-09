@@ -2,12 +2,13 @@ package com.example.speechapp;
 
 import android.animation.ValueAnimator;
 import android.content.Context;
+import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.FrameLayout;
-import android.widget.TextView;
 import java.util.Random;
 
 public class VoiceInputView extends FrameLayout {
@@ -15,22 +16,22 @@ public class VoiceInputView extends FrameLayout {
     private View[] voiceBars;
     private ValueAnimator[] animators;
     private Random random;
-    private TextView statusText;
-    private TextView tapText;
+    private int currentColor = Color.parseColor("#4285F4"); // Google Blue
 
     public enum VoiceStatus {
-        LISTENING("Listening..."),
-        PROCESSING("Processing..."),
-        ERROR("Couldn't hear that");
+        IDLE(Color.parseColor("#4285F4")), // Blue
+        LISTENING(Color.parseColor("#34A853")), // Green
+        PROCESSING(Color.parseColor("#34A853")), // Green
+        ERROR(Color.parseColor("#EA4335")); // Red
 
-        private final String text;
+        private final int color;
 
-        VoiceStatus(String text) {
-            this.text = text;
+        VoiceStatus(int color) {
+            this.color = color;
         }
 
-        public String getText() {
-            return text;
+        public int getColor() {
+            return color;
         }
     }
 
@@ -45,22 +46,25 @@ public class VoiceInputView extends FrameLayout {
     }
 
     private void init() {
+        setClickable(true);
+        setFocusable(true);
+
         LayoutInflater.from(getContext()).inflate(R.layout.voice_input_view, this, true);
         voiceAnimationContainer = findViewById(R.id.voiceAnimationContainer);
-        statusText = findViewById(R.id.voiceStatusText);
-        tapText = findViewById(R.id.voiceTapText);
         
         // Initialize voice bars
         voiceBars = new View[]{
             findViewById(R.id.voiceBar1),
             findViewById(R.id.voiceBar2),
-            findViewById(R.id.voiceBar3),
-            findViewById(R.id.voiceBar4),
-            findViewById(R.id.voiceBar5)
+            findViewById(R.id.voiceBar3)
         };
 
         animators = new ValueAnimator[voiceBars.length];
         random = new Random();
+        
+        // Set initial state
+        setStatus(VoiceStatus.IDLE);
+        voiceAnimationContainer.setVisibility(View.GONE);
     }
 
     public void startAnimation() {
@@ -78,36 +82,31 @@ public class VoiceInputView extends FrameLayout {
             }
         }
         voiceAnimationContainer.setVisibility(View.GONE);
+        setStatus(VoiceStatus.IDLE);
     }
 
     public void setStatus(VoiceStatus status) {
-        statusText.setText(status.getText());
+        currentColor = status.getColor();
+        updateBackgroundColor(currentColor);
         
-        // Update animations based on status
         switch (status) {
             case LISTENING:
-                statusText.setTextColor(getResources().getColor(android.R.color.holo_blue_light));
-                tapText.setVisibility(View.VISIBLE);
+                voiceAnimationContainer.setVisibility(View.VISIBLE);
                 for (View bar : voiceBars) {
-                    bar.setVisibility(View.VISIBLE);
+                    bar.setBackgroundColor(Color.WHITE);
                 }
                 break;
             case PROCESSING:
-                statusText.setTextColor(getResources().getColor(android.R.color.darker_gray));
-                tapText.setVisibility(View.GONE);
-                for (View bar : voiceBars) {
-                    bar.setVisibility(View.GONE);
-                }
-                break;
             case ERROR:
-                statusText.setTextColor(getResources().getColor(android.R.color.holo_red_light));
-                tapText.setVisibility(View.VISIBLE);
-                tapText.setText("Tap microphone to try again");
-                for (View bar : voiceBars) {
-                    bar.setVisibility(View.GONE);
-                }
+            case IDLE:
+                voiceAnimationContainer.setVisibility(View.GONE);
                 break;
         }
+    }
+
+    private void updateBackgroundColor(int color) {
+        setBackgroundResource(R.drawable.circle_background);
+        getBackground().setColorFilter(color, android.graphics.PorterDuff.Mode.SRC_IN);
     }
 
     private void startBarAnimation(int index) {
@@ -130,16 +129,18 @@ public class VoiceInputView extends FrameLayout {
             bar.setScaleY(scale);
         });
 
-        animator.setStartDelay(random.nextInt(200)); // Random start delay 0-200ms
+        animator.setStartDelay(index * 100); // Sequential delay for bars
         animator.start();
         animators[index] = animator;
     }
 
     public void updateWithAmplitude(float amplitude) {
-        // Scale amplitude to a reasonable range (0.3 - 1.0)
-        float scaledAmplitude = 0.3f + (amplitude * 0.7f);
-        for (View bar : voiceBars) {
-            bar.setScaleY(scaledAmplitude);
+        if (voiceAnimationContainer.getVisibility() == View.VISIBLE) {
+            // Scale amplitude to a reasonable range (0.3 - 1.0)
+            float scaledAmplitude = 0.3f + (amplitude * 0.7f);
+            for (View bar : voiceBars) {
+                bar.setScaleY(scaledAmplitude);
+            }
         }
     }
 }
