@@ -35,7 +35,7 @@ public class ChatFragment extends Fragment {
     }
 
     public void addMessage(ChatMessage message) {
-        Log.d(TAG, "Adding message: " + message.getHinglishText());
+        Log.d(TAG, "Adding message: " + message.getMessage());
         if (messages != null && chatAdapter != null) {
             messages.add(message);
             chatAdapter.notifyItemInserted(messages.size() - 1);

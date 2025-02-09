@@ -6,9 +6,12 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import okhttp3.MediaType;
@@ -23,9 +26,9 @@ public class GeminiAPI {
     private static final String KEY_API_KEY = "api_key";
     private static final String KEY_QUIZ_MODE = "quiz_mode";
     private static final String QUIZ_PROMPT_START = "You are a friendly AI assistant. ";
-    private static final String QUIZ_PROMPT_END = " When in quiz mode: Ask one question at a time, wait for answers, and use this response format: " +
-            "json_response schema {'explanation': string, 'score': int, 'rating': string, 'reason': string, 'encouraging_feedback': string, 'next_question': string}. " +
-            "When in conversation mode: Just respond naturally without any special format.";
+    private static final String QUIZ_PROMPT_END = " When in quiz mode: Ask one question at a time, wait for answers. " +
+            "ALWAYS format your response EXACTLY in JSON format with schema " +
+            "{'evaluation': 'evaluation text', 'explanation': 'explanation text', 'encouraging_feedback': 'feedback text', 'next_question': 'question text'}";
             
     
     private String apiKey;
@@ -74,6 +77,8 @@ public class GeminiAPI {
 
     public void setQuizMode(boolean enabled) {
         this.quizMode = enabled;
+        updateSystemPrompt();
+        conversationHistory = new StringBuilder();
         prefs.edit().putBoolean(KEY_QUIZ_MODE, enabled).apply();
     }
 
@@ -82,13 +87,16 @@ public class GeminiAPI {
     }
 
     private void updateSystemPrompt() {
-        String prompt = QUIZ_PROMPT_START;
+        String prompt = "";
         if (quizMode) {
+            prompt += QUIZ_PROMPT_START;
             prompt += "You are in quiz mode. Start a fun quiz about general knowledge. Ask one question at a time. ";
+            prompt += getLanguageInstruction() + QUIZ_PROMPT_END;
         } else {
             prompt += "You are in conversation mode. Have a natural conversation. ";
+            prompt += getLanguageInstruction();
         }
-        prompt += getLanguageInstruction() + QUIZ_PROMPT_END;
+        
         this.systemPrompt = prompt;
     }
 
@@ -158,7 +166,7 @@ public class GeminiAPI {
                 requestBody.put("contents", contents);
                 requestBody.put("safetySettings", new JSONArray());
                 requestBody.put("generationConfig", new JSONObject()
-                    .put("temperature", 0.7)
+                    .put("temperature", 0.5)
                     .put("topK", 1)
                     .put("topP", 1)
                     .put("maxOutputTokens", 800));
@@ -239,11 +247,7 @@ public class GeminiAPI {
                         debugLogFragment.appendLog("\n----------------------------------------\n");
                     }
 
-                    mainHandler.post(() -> {
-                        if (callback != null) {
-                            callback.onResponse(generatedText);
-                        }
-                    });
+                    processResponse(generatedText, callback);
                 }
             } catch (Exception e) {
                 Log.e(TAG, "Error generating response", e);
@@ -268,8 +272,56 @@ public class GeminiAPI {
         });
     }
 
+    private void processResponse(String response, GeminiCallback callback) {
+        try {
+            if (quizMode) {
+                // Try to parse as JSON first
+                try {
+                    int jsonStart = response.indexOf("{");
+                    int jsonEnd = response.lastIndexOf("}") + 1;
+                    
+                    if (jsonStart >= 0 && jsonEnd > jsonStart) {
+                        String jsonStr = response.substring(jsonStart, jsonEnd);
+                        JSONObject json = new JSONObject(jsonStr);
+                        List<String> messages = new ArrayList<>();
+                        
+                        if (json.has("explanation")) {
+                            messages.add(json.getString("explanation"));
+                            Log.d(TAG, "Explanation: " + json.getString("explanation"));
+                        }
+                        if (json.has("encouraging_feedback")) {
+                            messages.add(json.getString("encouraging_feedback"));
+                            Log.d(TAG, "Encouraging Feedback: " + json.getString("encouraging_feedback"));
+                        }
+                        if (json.has("next_question")) {
+                            messages.add(json.getString("next_question"));
+                            Log.d(TAG, "Next Question: " + json.getString("next_question"));
+                        }
+
+                        
+                        
+                        mainHandler.post(() -> callback.onMultiResponse(messages));
+                    } else {
+                        // No JSON found, return as is
+                        mainHandler.post(() -> callback.onResponse(response));
+                    }
+                } catch (JSONException e) {
+                    // If not valid JSON, return as is
+                    mainHandler.post(() -> callback.onResponse(response));
+                }
+            } else {
+                // In conversation mode, return response as is
+                mainHandler.post(() -> callback.onResponse(response));
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error processing response", e);
+            mainHandler.post(() -> callback.onError("Error processing response: " + e.getMessage()));
+        }
+    }
+
     public interface GeminiCallback {
         void onResponse(String response);
+        void onMultiResponse(List<String> responses);
         void onError(String error);
     }
 }

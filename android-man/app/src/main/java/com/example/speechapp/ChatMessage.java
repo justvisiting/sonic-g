@@ -6,14 +6,14 @@ public class ChatMessage {
 
     private String message;
     private String hindiText;
-    private String hinglishText;
+    //private String hinglishText;
     private int type;
     private long timestamp;
 
-    public ChatMessage(String message, String hindiText, String hinglishText, int type) {
+    public ChatMessage(String message, String hindiText, int type) {
         this.message = message;
         this.hindiText = hindiText;
-        this.hinglishText = hinglishText;
+        //this.hinglishText = hinglishText;
         this.type = type;
         this.timestamp = System.currentTimeMillis();
     }
@@ -26,9 +26,9 @@ public class ChatMessage {
         return hindiText;
     }
 
-    public String getHinglishText() {
-        return hinglishText;
-    }
+    //public String getHinglishText() {
+      //  return hinglishText;
+    //}
 
     public int getType() {
         return type;

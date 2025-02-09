@@ -7,6 +7,7 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -20,6 +21,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.preference.PreferenceManager;
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager2.widget.ViewPager2;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
@@ -37,7 +39,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String LANGUAGE_PREF = "language";
     private static final long DOUBLE_ENTER_THRESHOLD = 500; // milliseconds
 
-    private EditText chatInput;
+    private EditText inputEditText;
     private ImageButton sendButton;
     private VoiceInputView voiceInputView;
     private ChatFragment chatFragment;
@@ -58,13 +60,13 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        
+        setContentView(R.layout.activity_main);
+
         // Load preferences
-        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         currentLanguage = prefs.getString(LANGUAGE_PREF, "english");
         isDebugMode = prefs.getBoolean(DEBUG_MODE_PREF, false);
-        
-        setContentView(R.layout.activity_main);
+
         mainHandler = new Handler(Looper.getMainLooper());
 
         // Set up toolbar
@@ -75,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // Initialize UI elements
-        chatInput = findViewById(R.id.chatInput);
+        inputEditText = findViewById(R.id.chatInput);
         sendButton = findViewById(R.id.sendButton);
         viewPager = findViewById(R.id.viewPager);
         tabLayout = findViewById(R.id.tabLayout);
@@ -98,14 +100,14 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onPartialSpeechResult(String textSoFar, String newText) {
                 runOnUiThread(() -> {
-                    chatInput.append(newText + " ");
+                    inputEditText.append(newText + " ");
                 });
             }
 
             @Override
             public void onSpeechResult(String fullText) {
                 runOnUiThread(() -> {
-                    chatInput.setText(fullText);
+                    inputEditText.setText(fullText);
                     //processUserInput(fullText);
                     voiceInputView.stopAnimation();
                 });
@@ -122,8 +124,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onListeningStarted() {
                 runOnUiThread(() -> {
-                    chatInput.setText("");
-                    chatInput.setHint("...");
+                    inputEditText.setText("");
+                    inputEditText.setHint("...");
                     voiceInputView.startAnimation();
                 });
             }
@@ -183,35 +185,35 @@ public class MainActivity extends AppCompatActivity {
 
     private void setupClickListeners() {
         sendButton.setOnClickListener(v -> {
-            String text = chatInput.getText().toString().trim();
+            String text = inputEditText.getText().toString().trim();
             if (!text.isEmpty()) {
                 processUserInput(text);
-                chatInput.setText("");
+                inputEditText.setText("");
             }
         });
 
-        chatInput.setOnEditorActionListener((v, actionId, event) -> {
+        inputEditText.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_SEND) {
-                String text = chatInput.getText().toString().trim();
+                String text = inputEditText.getText().toString().trim();
                 if (!text.isEmpty()) {
                     processUserInput(text);
-                    chatInput.setText("");
+                    inputEditText.setText("");
                 }
                 return true;
             }
             return false;
         });
 
-        chatInput.setOnKeyListener((v, keyCode, event) -> {
+        inputEditText.setOnKeyListener((v, keyCode, event) -> {
             if (event.getAction() == KeyEvent.ACTION_DOWN) {
                 long currentTime = System.currentTimeMillis();
                 
                 if (keyCode == KeyEvent.KEYCODE_ENTER) {
                     if (lastKeyWasEnter && currentTime - lastEnterTime < DOUBLE_ENTER_THRESHOLD) {
-                        String text = chatInput.getText().toString().trim();
+                        String text = inputEditText.getText().toString().trim();
                         if (!text.isEmpty()) {
                             processUserInput(text);
-                            chatInput.setText("");
+                            inputEditText.setText("");
                             lastKeyWasEnter = false;
                             return true;
                         }
@@ -266,31 +268,34 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void startQuiz() {
-        Log.d(TAG, "Starting quiz");
         quizMode = true;
         quizPaused = false;
+        updateQuizMenuItems("started");
         
-        // Update menu items
-        updateQuizMenuItems("running");
-        
-        // Start new quiz
         geminiAPI.startNewQuiz(new GeminiAPI.GeminiCallback() {
             @Override
             public void onResponse(String response) {
-                Log.d(TAG, "Got initial quiz response");
                 runOnUiThread(() -> {
-                    // Convert bot response to Hindi
-                    String botHindiText = transliterateToHindi(response);
-                    addBotMessage(botHindiText, response);
+                    addBotMessage(response, response);
+                    scrollToBottom();
+                });
+            }
+
+            @Override
+            public void onMultiResponse(List<String> responses) {
+                runOnUiThread(() -> {
+                    for (String response : responses) {
+                        addBotMessage(response, response);
+                    }
+                    scrollToBottom();
                 });
             }
 
             @Override
             public void onError(String error) {
-                Log.e(TAG, "Quiz start error: " + error);
                 runOnUiThread(() -> {
-                    Toast.makeText(MainActivity.this, error, Toast.LENGTH_SHORT).show();
-                    // Reset menu items if there's an error
+                    addBotMessage("Error: " + error, error);
+                    scrollToBottom();
                     updateQuizMenuItems("stopped");
                 });
             }
@@ -337,95 +342,56 @@ public class MainActivity extends AppCompatActivity {
         addBotMessage(hindiMessage, message);
     }
 
-    private void processUserInput(String text) {
-        if (text.trim().isEmpty()) {
-            return;
-        }
+    private void processUserInput(String input) {
+        if (input == null || input.trim().isEmpty()) return;
 
-        // Don't process input if quiz is paused
-        if (quizMode && quizPaused) {
-            String message = "Quiz is paused. Please resume the quiz to continue.";
-            Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        // Add user message based on language preference
-        switch (currentLanguage) {
-            case "hindi":
-                addUserMessage(transliterateToHindi(text), text);
-                break;
-            case "hinglish":
-                addUserMessage(text, text); // Keep original Hinglish text
-                break;
-            default: // english
-                addUserMessage(text, text);
-                break;
-        }
-
-        // Get response from Gemini
-        geminiAPI.generateResponse(text, new GeminiAPI.GeminiCallback() {
+        addUserMessage(input, input);
+        geminiAPI.generateResponse(input, new GeminiAPI.GeminiCallback() {
             @Override
             public void onResponse(String response) {
-                Log.d(TAG, "Got Gemini response");
                 runOnUiThread(() -> {
-                    // Check if quiz is ending
-                    if (isQuizEnding(response)) {
-                        Log.d(TAG, "Quiz is ending");
-                        quizMode = false;
-                        quizPaused = false;
-                        updateQuizMenuItems("stopped");
+                    addBotMessage(response, response);
+                    scrollToBottom();
+                });
+            }
+
+            @Override
+            public void onMultiResponse(List<String> responses) {
+                runOnUiThread(() -> {
+                    for (String response : responses) {
+                        addBotMessage(response, response);
                     }
-                    
-                    // Process response based on language preference
-                    switch (currentLanguage) {
-                        case "hindi":
-                            addBotMessage(transliterateToHindi(response), response);
-                            break;
-                        case "hinglish":
-                            addBotMessage(convertToHinglish(response), response);
-                            break;
-                        default: // english
-                            addBotMessage(response, response);
-                            break;
-                    }
+                    scrollToBottom();
                 });
             }
 
             @Override
             public void onError(String error) {
-                Log.e(TAG, "Gemini response error: " + error);
                 runOnUiThread(() -> {
-                    Toast.makeText(MainActivity.this, error, Toast.LENGTH_SHORT).show();
+                    addBotMessage("Error: " + error, error);
+                    scrollToBottom();
                 });
             }
         });
     }
 
-    private String convertToHinglish(String text) {
-        // Simple Hinglish conversion rules
-        return text.replaceAll("Hello", "Helo")
-                  .replaceAll("Please", "Plz")
-                  .replaceAll("Thank you", "Thanku")
-                  .replaceAll("Good", "Gud")
-                  .replaceAll("What", "Wat")
-                  .replaceAll("You", "U")
-                  .replaceAll("Are", "R")
-                  .replaceAll("Why", "Y")
-                  .replaceAll("Okay", "Ok");
-    }
-
     private void addUserMessage(String displayText, String originalText) {
-        chatFragment.addMessage(new ChatMessage(displayText, originalText, "", ChatMessage.TYPE_USER));
+        chatFragment.addMessage(new ChatMessage(displayText, originalText, ChatMessage.TYPE_USER));
     }
 
     private void addBotMessage(String displayText, String originalText) {
-        chatFragment.addMessage(new ChatMessage(displayText, originalText, "", ChatMessage.TYPE_BOT));
+        chatFragment.addMessage(new ChatMessage(displayText, originalText, ChatMessage.TYPE_BOT));
     }
 
-    public void addDebugLog(String log) {
-        Log.d(TAG, "Adding debug log: " + log);
-        if (isDebugMode && debugFragment != null) {
-            runOnUiThread(() -> debugFragment.addLog(log));
+    private void scrollToBottom() {
+        viewPager.setCurrentItem(0);
+        if (chatFragment != null) {
+            chatFragment.getView().post(() -> {
+                RecyclerView recyclerView = chatFragment.getView().findViewById(R.id.chatRecyclerView);
+                if (recyclerView != null && recyclerView.getAdapter() != null) {
+                    recyclerView.smoothScrollToPosition(recyclerView.getAdapter().getItemCount() - 1);
+                }
+            });
         }
     }
 

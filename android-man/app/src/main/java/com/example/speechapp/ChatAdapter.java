@@ -33,7 +33,7 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.MessageViewHol
     public void onBindViewHolder(@NonNull MessageViewHolder holder, int position) {
         ChatMessage message = messages.get(position);
         holder.hindiText.setText(message.getHindiText());
-        holder.hinglishText.setText(message.getHinglishText());
+        //holder.hinglishText.setText(message.getHinglishText());
     }
 
     @Override
@@ -48,12 +48,12 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.MessageViewHol
 
     static class MessageViewHolder extends RecyclerView.ViewHolder {
         TextView hindiText;
-        TextView hinglishText;
+        //TextView hinglishText;
 
         MessageViewHolder(View itemView) {
             super(itemView);
             hindiText = itemView.findViewById(R.id.messageHindiText);
-            hinglishText = itemView.findViewById(R.id.messageHinglishText);
+            //hinglishText = itemView.findViewById(R.id.messageHinglishText);
         }
     }
 }
