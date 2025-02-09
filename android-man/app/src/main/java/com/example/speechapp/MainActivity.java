@@ -90,10 +90,16 @@ public class MainActivity extends AppCompatActivity {
         geminiAPI = new GeminiAPI(this, debugFragment);
         voiceManager = new VoiceManager(this, new VoiceManager.VoiceCallback() {
             @Override
-            public void onSpeechResult(String text) {
+            public void onPartialSpeechResult(String textSoFar, String newText) {
                 runOnUiThread(() -> {
-                    chatInput.setText(text);
-                    processUserInput(text);
+                    chatInput.append(newText + " ");
+                });
+            }
+            @Override
+            public void onSpeechResult(String fullText) {
+                runOnUiThread(() -> {
+                    chatInput.setText(fullText);
+                    processUserInput(fullText);
                     voiceInputView.stopAnimation();
                     voiceInputView.setVisibility(View.GONE);
                 });
@@ -121,6 +127,16 @@ public class MainActivity extends AppCompatActivity {
                 runOnUiThread(() -> {
                     updateMicButtonState(false);
                     // Don't hide the view here, let the status changes control visibility
+                });
+            }
+
+            @Override
+            public void onLanguageDetected(String language) {
+                runOnUiThread(() -> {
+                    if (!language.equals(currentLanguage)) {
+                        updateLanguage(language);
+                    }        
+                    // Update UI based on detected language
                 });
             }
 
@@ -572,6 +588,26 @@ public class MainActivity extends AppCompatActivity {
         return finalText;
     }
 
+    private void updateLanguage(String newLanguage) {
+            currentLanguage = newLanguage;
+            // Set language preference in Gemini API
+            geminiAPI.setLanguage(newLanguage);
+            // Add language change message
+            String message = "Switched to " + newLanguage + " mode";
+            switch (newLanguage) {
+                case "hindi":
+                    addBotMessage(transliterateToHindi(message), message);
+                    break;
+                case "hinglish":
+                    addBotMessage(convertToHinglish(
+                            transliterateToHindi(message)), message);
+                    break;
+                default:
+                    addBotMessage(message, message);
+                    break;
+            }
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -580,22 +616,7 @@ public class MainActivity extends AppCompatActivity {
             SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
             String newLanguage = prefs.getString(LANGUAGE_PREF, "english");
             if (!newLanguage.equals(currentLanguage)) {
-                currentLanguage = newLanguage;
-                // Update Gemini API language
-                geminiAPI.setLanguage(currentLanguage);
-                // Add language change message
-                String message = "Switched to " + currentLanguage + " mode";
-                switch (currentLanguage) {
-                    case "hindi":
-                        addBotMessage(transliterateToHindi(message), message);
-                        break;
-                    case "hinglish":
-                        addBotMessage(convertToHinglish(message), message);
-                        break;
-                    default:
-                        addBotMessage(message, message);
-                        break;
-                }
+                updateLanguage(newLanguage);
             }
             
             // Check debug mode changes
