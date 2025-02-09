@@ -121,6 +121,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onListeningStarted() {
                 runOnUiThread(() -> {
+                    chatInput.setText("");
+                    chatInput.setHint("...");
                     voiceInputView.startAnimation();
                 });
             }

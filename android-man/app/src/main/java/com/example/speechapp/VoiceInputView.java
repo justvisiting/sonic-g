@@ -9,10 +9,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import java.util.Random;
 
 public class VoiceInputView extends FrameLayout {
     private View voiceAnimationContainer;
+    private ImageView micIcon;
     private View[] voiceBars;
     private ValueAnimator[] animators;
     private Random random;
@@ -51,6 +53,7 @@ public class VoiceInputView extends FrameLayout {
 
         LayoutInflater.from(getContext()).inflate(R.layout.voice_input_view, this, true);
         voiceAnimationContainer = findViewById(R.id.voiceAnimationContainer);
+        micIcon = findViewById(R.id.micIcon);
         
         // Initialize voice bars
         voiceBars = new View[]{
@@ -65,10 +68,12 @@ public class VoiceInputView extends FrameLayout {
         // Set initial state
         setStatus(VoiceStatus.IDLE);
         voiceAnimationContainer.setVisibility(View.GONE);
+        micIcon.setVisibility(View.VISIBLE);
     }
 
     public void startAnimation() {
         voiceAnimationContainer.setVisibility(View.VISIBLE);
+        micIcon.setVisibility(View.GONE);
         setStatus(VoiceStatus.LISTENING);
         for (int i = 0; i < voiceBars.length; i++) {
             startBarAnimation(i);
@@ -82,6 +87,7 @@ public class VoiceInputView extends FrameLayout {
             }
         }
         voiceAnimationContainer.setVisibility(View.GONE);
+        micIcon.setVisibility(View.VISIBLE);
         setStatus(VoiceStatus.IDLE);
     }
 
@@ -92,6 +98,7 @@ public class VoiceInputView extends FrameLayout {
         switch (status) {
             case LISTENING:
                 voiceAnimationContainer.setVisibility(View.VISIBLE);
+                micIcon.setVisibility(View.GONE);
                 for (View bar : voiceBars) {
                     bar.setBackgroundColor(Color.WHITE);
                 }
@@ -100,6 +107,7 @@ public class VoiceInputView extends FrameLayout {
             case ERROR:
             case IDLE:
                 voiceAnimationContainer.setVisibility(View.GONE);
+                micIcon.setVisibility(View.VISIBLE);
                 break;
         }
     }
