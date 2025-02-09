@@ -22,4 +22,10 @@
         android:entryValues="@array/language_values"
         android:defaultValue="english" />
 
+    <SwitchPreference
+        android:key="quiz_mode"
+        android:title="Quiz Mode"
+        android:summary="Enable to start quiz immediately, disable for normal conversation"
+        android:defaultValue="false" />
+
 </PreferenceScreen>

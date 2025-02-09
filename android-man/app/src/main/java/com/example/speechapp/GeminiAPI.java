@@ -21,13 +21,15 @@ public class GeminiAPI {
     private static final String TAG = "GeminiAPI";
     private static final String PREF_NAME = "GeminiPrefs";
     private static final String KEY_API_KEY = "api_key";
-    private static final String QUIZ_PROMPT_START = "You are a friendly quiz master. ";
-    private static final String QUIZ_PROMPT_END = " Start a fun quiz about general knowledge. Ask one question at a time. " +
-            "Wait for the user's answer before proceeding to the next question. json_response schema {'explaination': string, 'score': int, 'rating': string, 'reason': string, encouring_feedback': string, 'next_question': string} " +
-            "Give encouraging feedback for both correct and incorrect answers. " ;
+    private static final String KEY_QUIZ_MODE = "quiz_mode";
+    private static final String QUIZ_PROMPT_START = "You are a friendly AI assistant. ";
+    private static final String QUIZ_PROMPT_END = " When in quiz mode: Ask one question at a time, wait for answers, and use this response format: " +
+            "json_response schema {'explanation': string, 'score': int, 'rating': string, 'reason': string, 'encouraging_feedback': string, 'next_question': string}. " +
+            "When in conversation mode: Just respond naturally without any special format.";
             
     
     private String apiKey;
+    private boolean quizMode;
     private final Context context;
     private final ExecutorService executor;
     private final Handler mainHandler;
@@ -36,6 +38,7 @@ public class GeminiAPI {
     private String systemPrompt;
     private final DebugLogFragment debugLogFragment;
     private final OkHttpClient client;
+    private final SharedPreferences prefs;
 
     public GeminiAPI(Context context) {
         this(context, null);
@@ -44,9 +47,10 @@ public class GeminiAPI {
     public GeminiAPI(Context context, DebugLogFragment debugLogFragment) {
         this.context = context;
         this.debugLogFragment = debugLogFragment;
+        this.prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
         // Load saved API key
-        SharedPreferences prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
         this.apiKey = prefs.getString(KEY_API_KEY, null);
+        this.quizMode = prefs.getBoolean(KEY_QUIZ_MODE, false);
         this.executor = Executors.newSingleThreadExecutor();
         this.mainHandler = new Handler(Looper.getMainLooper());
         this.conversationHistory = new StringBuilder();
@@ -57,7 +61,6 @@ public class GeminiAPI {
     public void setApiKey(String apiKey) {
         this.apiKey = apiKey;
         // Save API key
-        SharedPreferences prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
         prefs.edit().putString(KEY_API_KEY, apiKey).apply();
     }
 
@@ -69,8 +72,24 @@ public class GeminiAPI {
         return apiKey != null && !apiKey.isEmpty();
     }
 
+    public void setQuizMode(boolean enabled) {
+        this.quizMode = enabled;
+        prefs.edit().putBoolean(KEY_QUIZ_MODE, enabled).apply();
+    }
+
+    public boolean isQuizMode() {
+        return quizMode;
+    }
+
     private void updateSystemPrompt() {
-        this.systemPrompt = QUIZ_PROMPT_START + getLanguageInstruction() + QUIZ_PROMPT_END;
+        String prompt = QUIZ_PROMPT_START;
+        if (quizMode) {
+            prompt += "You are in quiz mode. Start a fun quiz about general knowledge. Ask one question at a time. ";
+        } else {
+            prompt += "You are in conversation mode. Have a natural conversation. ";
+        }
+        prompt += getLanguageInstruction() + QUIZ_PROMPT_END;
+        this.systemPrompt = prompt;
     }
 
     public void setLanguage(String language) {
