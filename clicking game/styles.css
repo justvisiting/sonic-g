@@ -43,7 +43,17 @@ body {
     color: #ff4081;
 }
 
+.target-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none; /* Allow clicks to pass through container */
+}
+
 .target {
+    position: absolute;
     width: 150px;
     height: 150px;
     background: #4CAF50;
@@ -55,8 +65,9 @@ body {
     color: white;
     font-size: 20px;
     font-weight: bold;
-    transition: transform 0.1s, background-color 0.3s;
+    transition: transform 0.3s ease;
     user-select: none;
+    pointer-events: auto; /* Re-enable clicks for the target */
     margin: 20px auto;
 }
 
@@ -97,4 +108,27 @@ body {
     background: linear-gradient(90deg, #4CAF50, #8BC34A);
     width: 0%;
     transition: width 0.3s ease;
+}
+
+.timer {
+    position: absolute;
+    top: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 24px;
+    color: #ff5722;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+    transition: color 0.3s;
+}
+
+.timer.warning {
+    color: #f44336;
+    animation: pulse 0.5s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: translateX(-50%) scale(1); }
+    50% { transform: translateX(-50%) scale(1.2); }
+    100% { transform: translateX(-50%) scale(1); }
 }
