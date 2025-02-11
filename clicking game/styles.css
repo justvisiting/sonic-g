@@ -60,28 +60,32 @@ body {
 
 .target {
     position: relative;
-    width: 150px;
-    height: 150px;
-    background: #4CAF50;
+    width: 100px;
+    height: 100px;
+    background-color: #4CAF50;
     border-radius: 50%;
     display: flex;
     justify-content: center;
     align-items: center;
     cursor: pointer;
+    user-select: none;
+    transition: transform 0.1s, background-color 0.3s;
     color: white;
     font-size: 20px;
-    font-weight: bold;
-    transition: transform 0.1s;
-    user-select: none;
-    pointer-events: auto;
+}
+
+.target.custom-target {
+    background: none;
+    font-size: 50px;
+    text-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
 }
 
 .target:hover {
-    background: #45a049;
+    transform: scale(1.1);
 }
 
 .target:active {
-    transform: scale(0.95);
+    transform: scale(0.9);
 }
 
 .multiplier {
@@ -179,6 +183,41 @@ body {
     padding: 0 5px;
 }
 
+.shop-tabs {
+    display: flex;
+    background: #2196F3;
+    padding: 0 20px;
+}
+
+.tab-button {
+    padding: 15px 25px;
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.tab-button:hover {
+    color: white;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.tab-button.active {
+    color: white;
+    border-bottom: 3px solid white;
+}
+
+.shop-section {
+    display: none;
+    padding: 20px;
+}
+
+.shop-section.active {
+    display: block;
+}
+
 .shop-items {
     padding: 20px;
     overflow-y: auto;
@@ -229,6 +268,12 @@ body {
     color: #4CAF50 !important;
 }
 
+.item-owned {
+    margin: 3px 0;
+    color: #2196F3;
+    font-weight: bold;
+}
+
 .buy-button {
     padding: 8px 20px;
     background: #4CAF50;
@@ -255,4 +300,23 @@ body {
 .shop-item.locked .buy-button {
     background: #cccccc;
     cursor: not-allowed;
+}
+
+.falling-candy {
+    position: fixed;
+    font-size: 30px;
+    pointer-events: none;
+    z-index: 1000;
+    animation: fall 1s ease-in;
+}
+
+@keyframes fall {
+    0% {
+        transform: translateY(0) translateX(0) rotate(var(--rotation));
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(300px) translateX(var(--horizontal-move)) rotate(calc(var(--rotation) + 360deg));
+        opacity: 0;
+    }
 }

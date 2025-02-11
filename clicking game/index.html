@@ -24,36 +24,78 @@
                 <h2>Shop</h2>
                 <button id="closeShop" class="close-button">×</button>
             </div>
-            <div class="shop-items">
-                <div class="shop-item" data-level="100" data-price="30">
-                    <div class="item-icon">🎯</div>
-                    <div class="item-info">
-                        <h3>Auto Clicker</h3>
-                        <p>Clicks automatically without stopping</p>
-                        <p class="item-requirement">Required Level: 100</p>
-                        <p class="item-price">30 🍬</p>
+            <div class="shop-tabs">
+                <button class="tab-button active" data-tab="upgrades">Upgrades</button>
+                <button class="tab-button" data-tab="objects">Clicking Objects</button>
+            </div>
+            <div class="shop-content">
+                <div class="shop-section active" id="upgrades">
+                    <div class="shop-items">
+                        <div class="shop-item" data-level="1000" data-price="30">
+                            <div class="item-icon">🎯</div>
+                            <div class="item-info">
+                                <h3>Auto Clicker</h3>
+                                <p>Clicks automatically without stopping</p>
+                                <p class="item-requirement">Required Level: 1000</p>
+                                <p class="item-price">30 🍬</p>
+                            </div>
+                            <button class="buy-button" data-item="autoClicker">Buy</button>
+                        </div>
+                        <div class="shop-item" data-level="70" data-price="100">
+                            <div class="item-icon">⚡</div>
+                            <div class="item-info">
+                                <h3>Speed Boost</h3>
+                                <p>2x candy from fast clicks</p>
+                                <p class="item-requirement">Required Level: 70</p>
+                                <p class="item-price">100 🍬</p>
+                            </div>
+                            <button class="buy-button" data-item="speedBoost">Buy</button>
+                        </div>
+                        <div class="shop-item" data-level="30" data-price="200">
+                            <div class="item-icon">🌟</div>
+                            <div class="item-info">
+                                <h3>Golden Click</h3>
+                                <p>5% chance for 5x candy</p>
+                                <p class="item-requirement">Required Level: 30</p>
+                                <p class="item-price">200 🍬</p>
+                            </div>
+                            <button class="buy-button" data-item="goldenClick">Buy</button>
+                        </div>
                     </div>
-                    <button class="buy-button" data-item="autoClicker">Buy</button>
                 </div>
-                <div class="shop-item" data-level="3" data-price="100">
-                    <div class="item-icon">⚡</div>
-                    <div class="item-info">
-                        <h3>Speed Boost</h3>
-                        <p>2x candy from fast clicks</p>
-                        <p class="item-requirement">Required Level: 3</p>
-                        <p class="item-price">100 🍬</p>
+                <div class="shop-section" id="objects">
+                    <div class="shop-items">
+                        <div class="shop-item" data-price="50" data-bonus="2" data-icon="🍭">
+                            <div class="item-icon">🍭</div>
+                            <div class="item-info">
+                                <h3>Candy Stick</h3>
+                                <p>+2 candies per click</p>
+                                <p class="item-price">50 🍬</p>
+                                <p class="item-status" data-object="candyStick">Not Owned</p>
+                            </div>
+                            <button class="buy-button" data-object="candyStick">Buy</button>
+                        </div>
+                        <div class="shop-item" data-price="200" data-bonus="10" data-icon="🍬">
+                            <div class="item-icon">🍬</div>
+                            <div class="item-info">
+                                <h3>Candy Box</h3>
+                                <p>+10 candies per click</p>
+                                <p class="item-price">200 🍬</p>
+                                <p class="item-status" data-object="candyBox">Not Owned</p>
+                            </div>
+                            <button class="buy-button" data-object="candyBox">Buy</button>
+                        </div>
+                        <div class="shop-item" data-price="1000" data-bonus="50" data-icon="🎁">
+                            <div class="item-icon">🎁</div>
+                            <div class="item-info">
+                                <h3>Candy Chest</h3>
+                                <p>+50 candies per click</p>
+                                <p class="item-price">1000 🍬</p>
+                                <p class="item-status" data-object="candyChest">Not Owned</p>
+                            </div>
+                            <button class="buy-button" data-object="candyChest">Buy</button>
+                        </div>
                     </div>
-                    <button class="buy-button" data-item="speedBoost">Buy</button>
-                </div>
-                <div class="shop-item" data-level="5" data-price="200">
-                    <div class="item-icon">🌟</div>
-                    <div class="item-info">
-                        <h3>Golden Click</h3>
-                        <p>5% chance for 5x candy</p>
-                        <p class="item-requirement">Required Level: 5</p>
-                        <p class="item-price">200 🍬</p>
-                    </div>
-                    <button class="buy-button" data-item="goldenClick">Buy</button>
                 </div>
             </div>
         </div>
