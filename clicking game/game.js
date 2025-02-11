@@ -5,12 +5,14 @@ class ClickingGame {
         this.multiplier = 1;
         this.clickStreak = 0;
         this.lastClickTime = Date.now();
+        this.candyCount = parseInt(localStorage.getItem('candyCount')) || 0;
 
         // DOM elements
         this.target = document.getElementById('target');
         this.scoreElement = document.getElementById('score');
         this.highScoreElement = document.getElementById('highScore');
         this.multiplierElement = document.getElementById('multiplier');
+        this.candyCountElement = document.getElementById('candyCount');
 
         // Initialize
         this.updateDisplay();
@@ -41,6 +43,10 @@ class ClickingGame {
         // Update score
         this.score += 1 * this.multiplier;
         
+        // Add candy cane
+        this.candyCount++;
+        localStorage.setItem('candyCount', this.candyCount);
+        
         // Update high score if needed
         if (this.score > this.highScore) {
             this.highScore = this.score;
@@ -56,6 +62,7 @@ class ClickingGame {
         this.scoreElement.textContent = this.score;
         this.highScoreElement.textContent = this.highScore;
         this.multiplierElement.textContent = this.multiplier + 'x';
+        this.candyCountElement.textContent = this.candyCount;
     }
 
     animateTarget() {

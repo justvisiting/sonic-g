@@ -24,8 +24,13 @@ body {
     color: #333;
 }
 
-.score, .high-score {
+.score, .high-score, .candy-canes {
     margin: 10px;
+}
+
+.candy-canes {
+    font-size: 28px;
+    color: #ff4081;
 }
 
 .target {
