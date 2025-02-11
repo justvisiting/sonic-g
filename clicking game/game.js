@@ -218,6 +218,12 @@ class ClickingGame {
         return parseInt(item.dataset.bonus);
     }
 
+    setupEventListeners() {
+        this.target.addEventListener('click', () => {
+            this.handleClick();
+        });
+    }
+
     handleClick() {
         const currentTime = Date.now();
         const timeDiff = currentTime - this.lastClickTime;
@@ -369,10 +375,6 @@ class ClickingGame {
 
     calculateRequiredCandies() {
         return this.level * 10;
-    }
-
-    setupEventListeners() {
-        this.target.addEventListener('click', () => this.handleClick());
     }
 
     showGoldenClickEffect() {
