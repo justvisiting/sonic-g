@@ -6,6 +6,13 @@ class ClickingGame {
         this.candyCount = parseInt(localStorage.getItem('candyCount')) || 0;
         this.level = parseInt(localStorage.getItem('level')) || 1;
         this.candiesForNextLevel = this.calculateRequiredCandies();
+        
+        // Shop items owned
+        this.ownedItems = JSON.parse(localStorage.getItem('ownedItems')) || {
+            autoClicker: false,
+            speedBoost: false,
+            goldenClick: false
+        };
 
         // DOM elements
         this.target = document.getElementById('target');
@@ -14,10 +21,114 @@ class ClickingGame {
         this.levelElement = document.getElementById('level');
         this.progressTextElement = document.getElementById('progressText');
         this.progressFillElement = document.getElementById('progressFill');
-
+        
+        // Shop elements
+        this.shopButton = document.getElementById('shopButton');
+        this.shopPanel = document.getElementById('shopPanel');
+        this.closeShopButton = document.getElementById('closeShop');
+        
         // Initialize
         this.updateDisplay();
         this.setupEventListeners();
+        this.setupShop();
+        
+        // Start auto clicker if owned
+        if (this.ownedItems.autoClicker) {
+            this.startAutoClicker();
+        }
+    }
+
+    setupShop() {
+        // Shop toggle
+        this.shopButton.addEventListener('click', () => {
+            this.shopPanel.classList.add('open');
+            this.updateShopItems();
+        });
+        
+        this.closeShopButton.addEventListener('click', () => {
+            this.shopPanel.classList.remove('open');
+        });
+
+        // Buy buttons
+        document.querySelectorAll('.buy-button').forEach(button => {
+            button.addEventListener('click', () => this.buyItem(button.dataset.item));
+        });
+
+        this.updateShopItems();
+    }
+
+    updateShopItems() {
+        document.querySelectorAll('.shop-item').forEach(item => {
+            const requiredLevel = parseInt(item.dataset.level);
+            const price = parseInt(item.dataset.price);
+            const itemId = item.querySelector('.buy-button').dataset.item;
+            const buyButton = item.querySelector('.buy-button');
+
+            // Check if already owned
+            if (this.ownedItems[itemId]) {
+                buyButton.textContent = 'Owned';
+                buyButton.disabled = true;
+                item.classList.remove('locked');
+                return;
+            }
+
+            // Check level requirement and price
+            if (this.level < requiredLevel || this.candyCount < price) {
+                item.classList.add('locked');
+                buyButton.disabled = true;
+            } else {
+                item.classList.remove('locked');
+                buyButton.disabled = false;
+            }
+        });
+    }
+
+    buyItem(itemId) {
+        const item = document.querySelector(`.shop-item[data-price][data-level] .buy-button[data-item="${itemId}"]`)
+            .closest('.shop-item');
+        const price = parseInt(item.dataset.price);
+        
+        if (this.candyCount >= price) {
+            this.candyCount -= price;
+            this.ownedItems[itemId] = true;
+            localStorage.setItem('ownedItems', JSON.stringify(this.ownedItems));
+            localStorage.setItem('candyCount', this.candyCount);
+            
+            // Apply item effects
+            if (itemId === 'autoClicker') {
+                this.startAutoClicker();
+            }
+            
+            this.updateDisplay();
+            this.updateShopItems();
+        }
+    }
+
+    startAutoClicker() {
+        // Use requestAnimationFrame for smooth continuous clicking
+        const autoClick = () => {
+            if (this.ownedItems.autoClicker) {
+                // Auto clicker gives candies based on level
+                const candiesEarned = this.level;
+                this.candyCount += candiesEarned;
+                localStorage.setItem('candyCount', this.candyCount);
+                
+                // Only show visual effect occasionally to prevent overwhelming
+                if (Math.random() < 0.1) {  // 10% chance to show effect
+                    this.showCandyEarnedEffect(candiesEarned);
+                }
+                
+                this.updateDisplay();
+                
+                if (this.candyCount >= this.candiesForNextLevel) {
+                    this.levelUp();
+                }
+            }
+            requestAnimationFrame(autoClick);
+        };
+        
+        // Start the continuous auto clicking
+        requestAnimationFrame(autoClick);
     }
 
     calculateRequiredCandies() {
@@ -45,10 +156,25 @@ class ClickingGame {
             this.multiplier = 1;
         }
         
-        // Add candy canes based on multiplier
-        const candiesEarned = 1 * this.multiplier;
+        // Base candies is equal to current level
+        let candiesEarned = this.level * this.multiplier;
+        
+        // Apply speed boost if owned
+        if (this.ownedItems.speedBoost && timeDiff < 500) {
+            candiesEarned *= 2;
+        }
+        
+        // Apply golden click if owned
+        if (this.ownedItems.goldenClick && Math.random() < 0.05) {
+            candiesEarned *= 5;
+            this.showGoldenClickEffect();
+        }
+
         this.candyCount += candiesEarned;
         localStorage.setItem('candyCount', this.candyCount);
+
+        // Show candy earned effect
+        this.showCandyEarnedEffect(candiesEarned);
 
         // Check for level up
         if (this.candyCount >= this.candiesForNextLevel) {
@@ -57,6 +183,34 @@ class ClickingGame {
 
         this.lastClickTime = currentTime;
         this.updateDisplay();
+    }
+
+    showGoldenClickEffect() {
+        const effect = document.createElement('div');
+        effect.className = 'golden-click-effect';
+        effect.textContent = '✨ 5x Bonus! ✨';
+        document.body.appendChild(effect);
+        
+        setTimeout(() => {
+            effect.remove();
+        }, 1000);
+    }
+
+    showCandyEarnedEffect(amount) {
+        const effect = document.createElement('div');
+        effect.className = 'candy-earned-effect';
+        effect.textContent = `+${amount} 🍬`;
+        
+        // Position near the target
+        const target = this.target.getBoundingClientRect();
+        effect.style.left = `${target.left + target.width / 2}px`;
+        effect.style.top = `${target.top - 30}px`;
+        
+        document.body.appendChild(effect);
+        
+        setTimeout(() => {
+            effect.remove();
+        }, 1000);
     }
 
     levelUp() {
@@ -75,6 +229,9 @@ class ClickingGame {
         setTimeout(() => {
             levelUpMessage.remove();
         }, 2000);
+
+        // Update shop items after level up
+        this.updateShopItems();
     }
 
     updateDisplay() {
@@ -89,7 +246,7 @@ class ClickingGame {
     }
 }
 
-// Add CSS for level up message
+// Add CSS for effects
 const style = document.createElement('style');
 style.textContent = `
     .level-up-message {
@@ -103,6 +260,27 @@ style.textContent = `
         border-radius: 10px;
         font-size: 24px;
         animation: fadeInOut 2s ease-in-out;
+        z-index: 1000;
+    }
+
+    .golden-click-effect {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: #FFD700;
+        font-size: 24px;
+        text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        animation: fadeInOut 1s ease-in-out;
+        z-index: 1000;
+    }
+
+    .candy-earned-effect {
+        position: absolute;
+        color: #FFD700;
+        font-size: 18px;
+        text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        animation: fadeInOut 1s ease-in-out;
         z-index: 1000;
     }
 
