@@ -1,7 +1,5 @@
 class ClickingGame {
     constructor() {
-        this.score = 0;
-        this.highScore = localStorage.getItem('highScore') || 0;
         this.multiplier = 1;
         this.clickStreak = 0;
         this.lastClickTime = Date.now();
@@ -9,8 +7,6 @@ class ClickingGame {
 
         // DOM elements
         this.target = document.getElementById('target');
-        this.scoreElement = document.getElementById('score');
-        this.highScoreElement = document.getElementById('highScore');
         this.multiplierElement = document.getElementById('multiplier');
         this.candyCountElement = document.getElementById('candyCount');
 
@@ -39,19 +35,11 @@ class ClickingGame {
             this.clickStreak = 0;
             this.multiplier = 1;
         }
-
-        // Update score
-        this.score += 1 * this.multiplier;
         
-        // Add candy cane
-        this.candyCount++;
+        // Add candy canes based on multiplier
+        const candiesEarned = 1 * this.multiplier;
+        this.candyCount += candiesEarned;
         localStorage.setItem('candyCount', this.candyCount);
-        
-        // Update high score if needed
-        if (this.score > this.highScore) {
-            this.highScore = this.score;
-            localStorage.setItem('highScore', this.highScore);
-        }
 
         this.lastClickTime = currentTime;
         this.updateDisplay();
@@ -59,8 +47,6 @@ class ClickingGame {
     }
 
     updateDisplay() {
-        this.scoreElement.textContent = this.score;
-        this.highScoreElement.textContent = this.highScore;
         this.multiplierElement.textContent = this.multiplier + 'x';
         this.candyCountElement.textContent = this.candyCount;
     }
