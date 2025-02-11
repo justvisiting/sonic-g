@@ -113,11 +113,12 @@ class ClickingGame {
     }
 
     buyItem(itemId) {
-        const item = document.querySelector(`.shop-item[data-price][data-level] .buy-button[data-item="${itemId}"]`)
+        const item = document.querySelector(`.shop-item .buy-button[data-item="${itemId}"]`)
             .closest('.shop-item');
         const price = parseInt(item.dataset.price);
+        const requiredLevel = parseInt(item.dataset.level);
         
-        if (this.candyCount >= price) {
+        if (this.level >= requiredLevel && this.candyCount >= price) {
             this.candyCount -= price;
             this.ownedItems[itemId] = true;
             this.activeItems[itemId] = true; // Activate immediately when bought
@@ -126,7 +127,7 @@ class ClickingGame {
             localStorage.setItem('candyCount', this.candyCount);
             
             // Apply item effects
-            if (itemId === 'autoClicker') {
+            if (itemId === 'autoClicker' && this.activeItems.autoClicker) {
                 this.startAutoClicker();
             }
             
