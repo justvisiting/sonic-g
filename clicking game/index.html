@@ -9,7 +9,14 @@
 <body>
     <div class="game-container">
         <div class="score-board">
+            <div class="level">Level <span id="level">1</span></div>
             <div class="candy-canes">🍬 × <span id="candyCount">0</span></div>
+            <div class="progress-container">
+                <div class="progress-text">Next Level: <span id="progressText">0/10</span></div>
+                <div class="progress-bar">
+                    <div id="progressFill" class="progress-fill"></div>
+                </div>
+            </div>
         </div>
         <div id="target" class="target">Click Me!</div>
         <div class="multiplier">Multiplier: <span id="multiplier">1x</span></div>
