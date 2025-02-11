@@ -322,3 +322,85 @@ body {
         opacity: 0;
     }
 }
+
+.leaderboard {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    max-width: 300px;
+}
+
+.leaderboard h2 {
+    margin: 0 0 15px 0;
+    text-align: center;
+    color: #333;
+}
+
+#leaderboardList {
+    margin-bottom: 15px;
+}
+
+.leaderboard-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+}
+
+.leaderboard-item:last-child {
+    border-bottom: none;
+}
+
+.leaderboard-rank {
+    font-weight: bold;
+    color: #666;
+    width: 30px;
+}
+
+.leaderboard-name {
+    flex-grow: 1;
+    margin: 0 10px;
+}
+
+.leaderboard-level {
+    font-weight: bold;
+    color: #4CAF50;
+}
+
+.player-name-input {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+#playerName {
+    flex-grow: 1;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+#saveName {
+    padding: 8px 15px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#saveName:hover {
+    background-color: #45a049;
+}
+
+.leaderboard-item.current-player {
+    background-color: #e8f5e9;
+    border-radius: 5px;
+}

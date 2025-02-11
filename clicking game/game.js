@@ -7,6 +7,7 @@ class ClickingGame {
         this.candyCount = parseInt(localStorage.getItem('candyCount')) || 0;
         this.level = parseInt(localStorage.getItem('level')) || 1;
         this.candiesForNextLevel = this.calculateRequiredCandies();
+        this.playerName = localStorage.getItem('playerName') || '';
         
         // Shop items owned and active status
         this.ownedItems = JSON.parse(localStorage.getItem('ownedItems')) || {
@@ -51,6 +52,7 @@ class ClickingGame {
         this.setupEventListeners();
         this.setupShop();
         this.updateTargetAppearance();
+        this.setupLeaderboard();
         console.log('Game initialized with:', {
             level: this.level,
             candyCount: this.candyCount,
@@ -193,6 +195,74 @@ class ClickingGame {
         this.target.addEventListener('click', () => {
             console.log('Raw click detected on target');
         });
+    }
+
+    setupLeaderboard() {
+        // Set up player name input
+        const playerNameInput = document.getElementById('playerName');
+        const saveNameButton = document.getElementById('saveName');
+        
+        if (this.playerName) {
+            playerNameInput.value = this.playerName;
+            this.updateLeaderboard();
+        }
+        
+        saveNameButton.addEventListener('click', () => {
+            const newName = playerNameInput.value.trim();
+            if (newName) {
+                this.playerName = newName;
+                localStorage.setItem('playerName', newName);
+                this.updateLeaderboard();
+            }
+        });
+
+        // Update leaderboard periodically
+        this.updateLeaderboard();
+        setInterval(() => this.updateLeaderboard(), 30000); // Update every 30 seconds
+    }
+
+    async updateLeaderboard() {
+        if (!this.playerName) return;
+
+        try {
+            // Send current player's score
+            await fetch('http://localhost:3000/api/leaderboard', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    playerName: this.playerName,
+                    level: this.level
+                })
+            });
+
+            // Get updated leaderboard
+            const response = await fetch('http://localhost:3000/api/leaderboard');
+            const leaderboard = await response.json();
+
+            // Update leaderboard display
+            const leaderboardList = document.getElementById('leaderboardList');
+            leaderboardList.innerHTML = '';
+
+            leaderboard.forEach((player, index) => {
+                const item = document.createElement('div');
+                item.className = 'leaderboard-item';
+                if (player.playerName === this.playerName) {
+                    item.classList.add('current-player');
+                }
+
+                item.innerHTML = `
+                    <span class="leaderboard-rank">#${index + 1}</span>
+                    <span class="leaderboard-name">${player.playerName}</span>
+                    <span class="leaderboard-level">Level ${player.level}</span>
+                `;
+
+                leaderboardList.appendChild(item);
+            });
+        } catch (error) {
+            console.error('Error updating leaderboard:', error);
+        }
     }
 
     handleClick() {
@@ -387,18 +457,21 @@ class ClickingGame {
         localStorage.setItem('candyCount', this.candyCount);
         this.candiesForNextLevel = this.calculateRequiredCandies();
         
-        // Show level up message
-        const levelUpMessage = document.createElement('div');
-        levelUpMessage.className = 'level-up-message';
-        levelUpMessage.textContent = `Level Up! 🎉 Level ${this.level}`;
-        document.body.appendChild(levelUpMessage);
+        // Create level up message
+        const message = document.createElement('div');
+        message.className = 'level-up-message';
+        message.textContent = `Level Up! Level ${this.level}`;
+        document.body.appendChild(message);
         
+        // Remove message after animation
         setTimeout(() => {
-            levelUpMessage.remove();
+            document.body.removeChild(message);
         }, 2000);
 
-        // Update shop items after level up
-        this.updateShopItems();
+        // Update leaderboard when leveling up
+        if (this.playerName) {
+            this.updateLeaderboard();
+        }
     }
 
     updateDisplay() {
