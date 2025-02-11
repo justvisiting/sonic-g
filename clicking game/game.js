@@ -6,8 +6,6 @@ class ClickingGame {
         this.candyCount = parseInt(localStorage.getItem('candyCount')) || 0;
         this.level = parseInt(localStorage.getItem('level')) || 1;
         this.candiesForNextLevel = this.calculateRequiredCandies();
-        this.timeLeft = 3;
-        this.timerInterval = null;
 
         // DOM elements
         this.target = document.getElementById('target');
@@ -16,12 +14,10 @@ class ClickingGame {
         this.levelElement = document.getElementById('level');
         this.progressTextElement = document.getElementById('progressText');
         this.progressFillElement = document.getElementById('progressFill');
-        this.timerElement = document.getElementById('timer');
 
         // Initialize
         this.updateDisplay();
         this.setupEventListeners();
-        this.startTimer();
     }
 
     calculateRequiredCandies() {
@@ -30,35 +26,6 @@ class ClickingGame {
 
     setupEventListeners() {
         this.target.addEventListener('click', () => this.handleClick());
-    }
-
-    startTimer() {
-        this.timeLeft = 3;
-        this.updateTimerDisplay();
-        
-        if (this.timerInterval) {
-            clearInterval(this.timerInterval);
-        }
-
-        this.timerInterval = setInterval(() => {
-            this.timeLeft--;
-            this.updateTimerDisplay();
-            
-            if (this.timeLeft <= 0) {
-                clearInterval(this.timerInterval);
-                this.animateTarget();
-                this.startTimer();
-            }
-        }, 1000);
-    }
-
-    updateTimerDisplay() {
-        this.timerElement.textContent = this.timeLeft;
-        if (this.timeLeft <= 1) {
-            this.timerElement.classList.add('warning');
-        } else {
-            this.timerElement.classList.remove('warning');
-        }
     }
 
     handleClick() {
@@ -90,8 +57,6 @@ class ClickingGame {
 
         this.lastClickTime = currentTime;
         this.updateDisplay();
-        this.animateTarget();
-        this.startTimer(); // Reset timer on successful click
     }
 
     levelUp() {
@@ -121,21 +86,6 @@ class ClickingGame {
         // Update progress bar
         const progress = (this.candyCount / this.candiesForNextLevel) * 100;
         this.progressFillElement.style.width = `${progress}%`;
-    }
-
-    animateTarget() {
-        const targetSize = 150; // Size of the target in pixels
-        const padding = 20; // Padding from screen edges
-        
-        // Get the actual visible area dimensions
-        const maxX = window.innerWidth - targetSize - padding;
-        const maxY = window.innerHeight - targetSize - padding;
-        
-        // Calculate new position with padding from edges
-        const randomX = Math.min(Math.max(padding, Math.random() * maxX), maxX);
-        const randomY = Math.min(Math.max(padding, Math.random() * maxY), maxY);
-
-        this.target.style.transform = `translate(${randomX}px, ${randomY}px)`;
     }
 }
 
