@@ -187,18 +187,15 @@ class ClickingGame {
         const price = parseInt(item.dataset.price);
         
         if (this.candyCount >= price) {
-            // Disable any currently active object
-            this.activeClickingObject = null;
-            
             // Deactivate all other objects
             Object.keys(this.clickingObjects).forEach(key => {
-                if (key !== objectId) {
-                    this.clickingObjects[key] = false;
-                }
+                this.clickingObjects[key] = false;
             });
             
+            // Buy and activate the new object
             this.candyCount -= price;
             this.clickingObjects[objectId] = true;
+            this.activeClickingObject = objectId;  // Automatically activate the object
             
             localStorage.setItem('clickingObjects', JSON.stringify(this.clickingObjects));
             localStorage.setItem('activeClickingObject', this.activeClickingObject);
