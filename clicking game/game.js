@@ -66,14 +66,18 @@ class ClickingGame {
 
     updateTargetAppearance() {
         if (this.activeClickingObject) {
+            // If a clicking object is active, show its icon
             const item = document.querySelector(`.shop-item[data-icon] .buy-button[data-object="${this.activeClickingObject}"]`)
                 .closest('.shop-item');
             const icon = item.dataset.icon;
             this.target.textContent = icon;
             this.target.classList.add('custom-target');
+            this.target.classList.remove('default-target');
         } else {
+            // If no clicking object is active, show the default green dot
             this.target.textContent = 'Click Me!';
             this.target.classList.remove('custom-target');
+            this.target.classList.add('default-target');
         }
     }
 

@@ -59,10 +59,8 @@ body {
 }
 
 .target {
-    position: relative;
     width: 150px;
     height: 150px;
-    background-color: #4CAF50;
     border-radius: 50%;
     display: flex;
     justify-content: center;
@@ -72,6 +70,10 @@ body {
     transition: transform 0.1s, background-color 0.3s;
     color: white;
     font-size: 24px;
+}
+
+.target.default-target {
+    background-color: #4CAF50;
 }
 
 .target.custom-target {
