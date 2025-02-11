@@ -7,8 +7,15 @@ class ClickingGame {
         this.level = parseInt(localStorage.getItem('level')) || 1;
         this.candiesForNextLevel = this.calculateRequiredCandies();
         
-        // Shop items owned
+        // Shop items owned and active status
         this.ownedItems = JSON.parse(localStorage.getItem('ownedItems')) || {
+            autoClicker: false,
+            speedBoost: false,
+            goldenClick: false
+        };
+        
+        // Active status for owned items
+        this.activeItems = JSON.parse(localStorage.getItem('activeItems')) || {
             autoClicker: false,
             speedBoost: false,
             goldenClick: false
@@ -32,8 +39,8 @@ class ClickingGame {
         this.setupEventListeners();
         this.setupShop();
         
-        // Start auto clicker if owned
-        if (this.ownedItems.autoClicker) {
+        // Start auto clicker if owned and active
+        if (this.ownedItems.autoClicker && this.activeItems.autoClicker) {
             this.startAutoClicker();
         }
     }
@@ -49,9 +56,16 @@ class ClickingGame {
             this.shopPanel.classList.remove('open');
         });
 
-        // Buy buttons
+        // Buy/toggle buttons
         document.querySelectorAll('.buy-button').forEach(button => {
-            button.addEventListener('click', () => this.buyItem(button.dataset.item));
+            button.addEventListener('click', () => {
+                const itemId = button.dataset.item;
+                if (this.ownedItems[itemId]) {
+                    this.toggleItem(itemId);
+                } else {
+                    this.buyItem(itemId);
+                }
+            });
         });
 
         this.updateShopItems();
@@ -66,9 +80,9 @@ class ClickingGame {
 
             // Check if already owned
             if (this.ownedItems[itemId]) {
-                buyButton.textContent = 'Owned';
-                buyButton.disabled = true;
+                buyButton.textContent = this.activeItems[itemId] ? 'Disable' : 'Enable';
                 item.classList.remove('locked');
+                buyButton.disabled = false;
                 return;
             }
 
@@ -80,7 +94,22 @@ class ClickingGame {
                 item.classList.remove('locked');
                 buyButton.disabled = false;
             }
+            buyButton.textContent = 'Buy';
         });
+    }
+
+    toggleItem(itemId) {
+        this.activeItems[itemId] = !this.activeItems[itemId];
+        localStorage.setItem('activeItems', JSON.stringify(this.activeItems));
+        
+        // Handle special cases when toggling
+        if (itemId === 'autoClicker') {
+            if (this.activeItems.autoClicker) {
+                this.startAutoClicker();
+            }
+        }
+        
+        this.updateShopItems();
     }
 
     buyItem(itemId) {
@@ -91,7 +120,9 @@ class ClickingGame {
         if (this.candyCount >= price) {
             this.candyCount -= price;
             this.ownedItems[itemId] = true;
+            this.activeItems[itemId] = true; // Activate immediately when bought
             localStorage.setItem('ownedItems', JSON.stringify(this.ownedItems));
+            localStorage.setItem('activeItems', JSON.stringify(this.activeItems));
             localStorage.setItem('candyCount', this.candyCount);
             
             // Apply item effects
@@ -107,7 +138,7 @@ class ClickingGame {
     startAutoClicker() {
         // Use requestAnimationFrame for smooth continuous clicking
         const autoClick = () => {
-            if (this.ownedItems.autoClicker) {
+            if (this.ownedItems.autoClicker && this.activeItems.autoClicker) {
                 // Auto clicker gives candies based on level
                 const candiesEarned = this.level;
                 this.candyCount += candiesEarned;
@@ -159,13 +190,13 @@ class ClickingGame {
         // Base candies is equal to current level
         let candiesEarned = this.level * this.multiplier;
         
-        // Apply speed boost if owned
-        if (this.ownedItems.speedBoost && timeDiff < 500) {
+        // Apply speed boost if owned and active
+        if (this.ownedItems.speedBoost && this.activeItems.speedBoost && timeDiff < 500) {
             candiesEarned *= 2;
         }
         
-        // Apply golden click if owned
-        if (this.ownedItems.goldenClick && Math.random() < 0.05) {
+        // Apply golden click if owned and active
+        if (this.ownedItems.goldenClick && this.activeItems.goldenClick && Math.random() < 0.05) {
             candiesEarned *= 5;
             this.showGoldenClickEffect();
         }
