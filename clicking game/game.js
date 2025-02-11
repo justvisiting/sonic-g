@@ -1,5 +1,6 @@
 class ClickingGame {
     constructor() {
+        console.log('Game initializing...');
         this.multiplier = 1;
         this.clickStreak = 0;
         this.lastClickTime = Date.now();
@@ -32,6 +33,8 @@ class ClickingGame {
 
         // DOM elements
         this.target = document.getElementById('target');
+        console.log('Target element:', this.target);
+        
         this.multiplierElement = document.getElementById('multiplier');
         this.candyCountElement = document.getElementById('candyCount');
         this.levelElement = document.getElementById('level');
@@ -48,6 +51,12 @@ class ClickingGame {
         this.setupEventListeners();
         this.setupShop();
         this.updateTargetAppearance();
+        console.log('Game initialized with:', {
+            level: this.level,
+            candyCount: this.candyCount,
+            activeClickingObject: this.activeClickingObject,
+            clickingObjects: this.clickingObjects
+        });
         
         // Start auto clicker if owned and active
         if (this.ownedItems.autoClicker && this.activeItems.autoClicker) {
@@ -167,61 +176,23 @@ class ClickingGame {
         });
     }
 
-    toggleClickingObject(objectId) {
-        if (this.activeClickingObject === objectId) {
-            // Disable the current object
-            this.activeClickingObject = null;
-        } else {
-            // Enable the new object
-            this.activeClickingObject = objectId;
-        }
-        
-        localStorage.setItem('activeClickingObject', this.activeClickingObject);
-        this.updateTargetAppearance();
-        this.updateShopItems();
-    }
-
-    buyClickingObject(objectId) {
-        const item = document.querySelector(`.shop-item .buy-button[data-object="${objectId}"]`)
-            .closest('.shop-item');
-        const price = parseInt(item.dataset.price);
-        
-        if (this.candyCount >= price) {
-            // Deactivate all other objects
-            Object.keys(this.clickingObjects).forEach(key => {
-                this.clickingObjects[key] = false;
-            });
-            
-            // Buy and activate the new object
-            this.candyCount -= price;
-            this.clickingObjects[objectId] = true;
-            this.activeClickingObject = objectId;  // Automatically activate the object
-            
-            localStorage.setItem('clickingObjects', JSON.stringify(this.clickingObjects));
-            localStorage.setItem('activeClickingObject', this.activeClickingObject);
-            localStorage.setItem('candyCount', this.candyCount);
-            
-            this.updateDisplay();
-            this.updateShopItems();
-            this.updateTargetAppearance();
-        }
-    }
-
-    calculateClickingObjectsBonus() {
-        if (!this.activeClickingObject) return 0;
-        
-        const item = document.querySelector(`.shop-item .buy-button[data-object="${this.activeClickingObject}"]`)
-            .closest('.shop-item');
-        return parseInt(item.dataset.bonus);
-    }
-
     setupEventListeners() {
+        console.log('Setting up event listeners...');
+        // Bind the handleClick method to this instance
+        this.handleClick = this.handleClick.bind(this);
+        
+        // Add click event listener to the target
+        this.target.addEventListener('click', this.handleClick);
+        console.log('Click listener added to target');
+        
+        // Add a test click listener to verify event handling
         this.target.addEventListener('click', () => {
-            this.handleClick();
+            console.log('Raw click detected on target');
         });
     }
 
     handleClick() {
+        console.log('handleClick called');
         const currentTime = Date.now();
         const timeDiff = currentTime - this.lastClickTime;
 
@@ -245,6 +216,7 @@ class ClickingGame {
         if (this.activeClickingObject) {
             const objectBonus = this.calculateClickingObjectsBonus();
             candiesEarned += objectBonus;
+            console.log('Clicking object bonus:', objectBonus);
             
             // Create candy drop animation
             this.createCandyDrop(this.activeClickingObject);
@@ -264,6 +236,7 @@ class ClickingGame {
             this.showGoldenClickEffect();
         }
 
+        console.log('Candies earned:', candiesEarned);
         this.candyCount += candiesEarned;
         localStorage.setItem('candyCount', this.candyCount);
 
@@ -277,6 +250,7 @@ class ClickingGame {
 
         this.lastClickTime = currentTime;
         this.updateDisplay();
+        console.log('Updated candy count:', this.candyCount);
     }
 
     createCandyDrop(objectType) {
@@ -433,6 +407,54 @@ class ClickingGame {
         const progress = (this.candyCount / this.candiesForNextLevel) * 100;
         this.progressFillElement.style.width = `${progress}%`;
     }
+
+    toggleClickingObject(objectId) {
+        if (this.activeClickingObject === objectId) {
+            // Disable the current object
+            this.activeClickingObject = null;
+        } else {
+            // Enable the new object
+            this.activeClickingObject = objectId;
+        }
+        
+        localStorage.setItem('activeClickingObject', this.activeClickingObject);
+        this.updateTargetAppearance();
+        this.updateShopItems();
+    }
+
+    buyClickingObject(objectId) {
+        const item = document.querySelector(`.shop-item .buy-button[data-object="${objectId}"]`)
+            .closest('.shop-item');
+        const price = parseInt(item.dataset.price);
+        
+        if (this.candyCount >= price) {
+            // Deactivate all other objects
+            Object.keys(this.clickingObjects).forEach(key => {
+                this.clickingObjects[key] = false;
+            });
+            
+            // Buy and activate the new object
+            this.candyCount -= price;
+            this.clickingObjects[objectId] = true;
+            this.activeClickingObject = objectId;  // Automatically activate the object
+            
+            localStorage.setItem('clickingObjects', JSON.stringify(this.clickingObjects));
+            localStorage.setItem('activeClickingObject', this.activeClickingObject);
+            localStorage.setItem('candyCount', this.candyCount);
+            
+            this.updateDisplay();
+            this.updateShopItems();
+            this.updateTargetAppearance();
+        }
+    }
+
+    calculateClickingObjectsBonus() {
+        if (!this.activeClickingObject) return 0;
+        
+        const item = document.querySelector(`.shop-item .buy-button[data-object="${this.activeClickingObject}"]`)
+            .closest('.shop-item');
+        return parseInt(item.dataset.bonus);
+    }
 }
 
 // Add CSS for effects
@@ -500,5 +522,5 @@ document.head.appendChild(style);
 
 // Start the game when the page loads
 window.onload = () => {
-    new ClickingGame();
+    window.game = new ClickingGame();
 };
