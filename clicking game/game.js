@@ -1,6 +1,3 @@
-import { database } from './firebase-config.js';
-import { ref, set, onValue, query, orderByChild, limitToLast } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-
 class ClickingGame {
     constructor() {
         console.log('Game initializing...');
@@ -224,55 +221,18 @@ class ClickingGame {
         setInterval(() => this.updateLeaderboard(), 30000); // Update every 30 seconds
     }
 
-    async updateLeaderboard() {
+    updateLeaderboard() {
         if (!this.playerName) return;
-
-        try {
-            // Update player's score in Firebase
-            const playerRef = ref(database, 'players/' + this.playerName.replace(/[.#$[\]]/g, '_'));
-            await set(playerRef, {
-                name: this.playerName,
-                level: this.level,
-                lastUpdated: Date.now()
-            });
-
-            // Get top 10 players
-            const leaderboardRef = ref(database, 'players');
-            const leaderboardQuery = query(leaderboardRef, orderByChild('level'), limitToLast(10));
-            
-            onValue(leaderboardQuery, (snapshot) => {
-                const data = snapshot.val();
-                if (!data) return;
-
-                // Convert to array and sort by level
-                const players = Object.entries(data).map(([id, player]) => ({
-                    playerName: player.name,
-                    level: player.level
-                })).sort((a, b) => b.level - a.level);
-
-                // Update leaderboard display
-                const leaderboardList = document.getElementById('leaderboardList');
-                leaderboardList.innerHTML = '';
-
-                players.forEach((player, index) => {
-                    const item = document.createElement('div');
-                    item.className = 'leaderboard-item';
-                    if (player.playerName === this.playerName) {
-                        item.classList.add('current-player');
-                    }
-
-                    item.innerHTML = `
-                        <span class="leaderboard-rank">#${index + 1}</span>
-                        <span class="leaderboard-name">${player.playerName}</span>
-                        <span class="leaderboard-level">Level ${player.level}</span>
-                    `;
-
-                    leaderboardList.appendChild(item);
-                });
-            });
-        } catch (error) {
-            console.error('Error updating leaderboard:', error);
-        }
+        
+        // For now, just show the current player's score
+        const leaderboardList = document.getElementById('leaderboardList');
+        leaderboardList.innerHTML = `
+            <div class="leaderboard-item current-player">
+                <span class="leaderboard-rank">#1</span>
+                <span class="leaderboard-name">${this.playerName}</span>
+                <span class="leaderboard-level">Level ${this.level}</span>
+            </div>
+        `;
     }
 
     handleClick() {
